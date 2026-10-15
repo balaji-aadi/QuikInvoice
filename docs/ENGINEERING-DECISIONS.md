@@ -69,11 +69,57 @@ Use `zod` schemas executed via a generic `validate(schema)` middleware before re
 ## ADR-005: Decoupled Vite + Express Monorepo with Dev Server Proxy
 
 ### Context
-Developing frontend and backend on separate ports (`5173` and `5000`) often causes CORS cookie rejection during local development.
+Developing frontend and backend on separate ports (`5173` and `5001`) often causes CORS cookie rejection during local development.
 
 ### Decision
-Configure Vite's development server proxy in `client/vite.config.js` to route all `/api/*` requests directly to `http://localhost:5000`.
+Configure Vite's development server proxy in `client/vite.config.js` to route all `/api/*` requests directly to `http://localhost:5001`.
 
 ### Consequences
 - **Positive:** Eliminates CORS complexity in local development while maintaining complete production separation.
 - **Trade-off:** Requires starting both the backend server and Vite frontend server during local development.
+
+---
+
+## ADR-006: Server-Side JWT Invalidation via `token_version` Column
+
+### Context
+Stateless JWT tokens cannot be invalidated server-side without a persistent record of revoked tokens. If a token is compromised or copied prior to logout, it remains valid until its 24-hour expiration. Introducing Redis or an append-only token blacklist table introduces infrastructure sprawl and requires background cleanup tasks.
+
+### Decision
+Add a single non-null unsigned integer column `token_version INT UNSIGNED NOT NULL DEFAULT 1` to the `users` table. Embed `tokenVersion: user.token_version` in the JWT payload. On logout, execute `UPDATE users SET token_version = token_version + 1 WHERE id = ?` and clear the cookie. In `authMiddleware`, compare `decoded.tokenVersion === user.token_version`.
+
+### Consequences
+- **Positive:** Instant, absolute token revocation across all devices on logout with zero external dependencies (no Redis, no unbounded blacklist tables). Works identically for both cookie and Bearer header authentication.
+- **Trade-off:** Requires a fast primary-key database lookup (`SELECT ... WHERE id = ?`) during authentication. Because `id` is the clustered primary key index in InnoDB, lookup latency is sub-millisecond.
+
+---
+
+## ADR-007: Defense-in-Depth CSRF Mitigation via Origin Allowlist & Custom Headers
+
+### Context
+Browser cookies configured with `SameSite=Lax` provide baseline protection, but do not actively reject cross-origin requests at the middleware layer. Additionally, third-party CSRF libraries like `csurf` are deprecated, bloated, and require synchronizing token pairs.
+
+### Decision
+Implement a lightweight, zero-dependency middleware ([`csrfMiddleware.js`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/server/src/middlewares/csrfMiddleware.js)) that:
+1. Validates the `Origin` header against an allowlist for state-changing requests (`POST`, `PUT`, `PATCH`, `DELETE`).
+2. Validates `Referer` if `Origin` is omitted.
+3. Enforces `X-Requested-With: XMLHttpRequest` for all cookie-authenticated requests.
+4. Terminates unauthorized requests with `403 Forbidden` before reaching controllers.
+
+### Consequences
+- **Positive:** Rejects cross-origin form submissions and unauthorized origins before any controller executes; requires zero external packages.
+- **Trade-off:** Non-browser API clients must use Bearer tokens or explicitly set the required header.
+
+---
+
+## ADR-008: Port 5001 Selection to Prevent macOS AirPlay Daemon Collision
+
+### Context
+On macOS Monterey, Ventura, Sonoma, and Sequoia, Apple's `ControlCenter` runs an AirPlay Receiver on port 5000 (`commplex-main`). When an application attempts to bind to port 5000 or proxy requests to it, AirTunes responds with `HTTP/1.1 403 Forbidden`, causing opaque authentication and registration failures.
+
+### Decision
+Standardize the backend port on **`5001`** across all environment files, default configurations, and proxy settings.
+
+### Consequences
+- **Positive:** Eliminates port collisions with native macOS system services while leaving user system settings untouched.
+- **Trade-off:** Developers must use port 5001 rather than the generic default port 5000.

@@ -5,6 +5,7 @@ import cookieParser from 'cookie-parser';
 import env from './config/env.js';
 import { checkDbConnection } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
+import { csrfProtection } from './middlewares/csrfMiddleware.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { NotFoundError } from './utils/errors.js';
 
@@ -31,6 +32,9 @@ app.use(
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser(env.COOKIE_SECRET));
+
+// 4. Server-Side CSRF and Origin Guard
+app.use(csrfProtection);
 
 // 4. Service Health Check Endpoint
 app.get('/api/health', async (req, res) => {

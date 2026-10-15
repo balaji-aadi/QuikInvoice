@@ -41,7 +41,12 @@ export async function requireAuth(req, res, next) {
       throw new UnauthorizedError('User account associated with this token no longer exists');
     }
 
-    // 5. Attach user object to request
+    // 5. Verify token version matches user's current version (Revocation Check)
+    if (decoded.tokenVersion !== undefined && decoded.tokenVersion !== user.token_version) {
+      throw new UnauthorizedError('Authentication session has been revoked. Please log in again.');
+    }
+
+    // 6. Attach user object to request
     req.user = user;
     next();
   } catch (error) {

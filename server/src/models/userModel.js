@@ -15,6 +15,7 @@ export class UserModel {
         business_name, 
         business_address, 
         business_phone, 
+        token_version,
         created_at, 
         updated_at
       FROM users
@@ -38,6 +39,7 @@ export class UserModel {
         business_name, 
         business_address, 
         business_phone, 
+        token_version,
         created_at, 
         updated_at
       FROM users
@@ -46,6 +48,16 @@ export class UserModel {
     `;
     const [rows] = await query(sql, [id]);
     return rows[0] || null;
+  }
+
+  /**
+   * Increment user token_version to immediately revoke all outstanding JWT tokens
+   * @param {number} id
+   */
+  static async incrementTokenVersion(id) {
+    const sql = `UPDATE users SET token_version = token_version + 1 WHERE id = ?`;
+    await query(sql, [id]);
+    return this.findById(id);
   }
 
   /**

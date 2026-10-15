@@ -214,10 +214,11 @@ describe('QuikInvoice Phase 1 — Authentication & Security Test Suite', () => {
       const regRes = await request(app).post('/api/auth/register').send(validUser);
       const cookieHeader = regRes.headers['set-cookie'];
 
-      // 2. Logout with active cookie
+      // 2. Logout with active cookie and browser anti-CSRF header
       const logoutRes = await request(app)
         .post('/api/auth/logout')
-        .set('Cookie', cookieHeader);
+        .set('Cookie', cookieHeader)
+        .set('X-Requested-With', 'XMLHttpRequest');
 
       expect(logoutRes.status).toBe(200);
       expect(logoutRes.body.success).toBe(true);

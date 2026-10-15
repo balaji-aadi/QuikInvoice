@@ -52,12 +52,13 @@ QuikInvoice is engineered to balance real-world production robustness with techn
 |   |    ├── Helmet          -> Secure HTTP headers (CSP, HSTS, frameguard)           |   |
 |   |    ├── CORS            -> Origin: http://localhost:5173, credentials: true      |   |
 |   |    ├── express.json()  -> 1MB payload ceiling                                   |   |
-|   |    └── cookieParser()  -> Signed cookie extraction                              |   |
+|   |    ├── cookieParser()  -> Signed cookie extraction                              |   |
+|   |    └── csrfProtection  -> Origin/Referer verification & X-Requested-With guard  |   |
 |   |                                                                                 |   |
 |   |  [Route-Specific Middlewares]                                                   |   |
 |   |    ├── authLimiter     -> Rate limiting (10 req / 15 min per IP)                |   |
 |   |    ├── validate(Zod)   -> Schema enforcement on req.body                        |   |
-|   |    └── requireAuth     -> JWT signature verification & req.user injection       |   |
+|   |    └── requireAuth     -> JWT signature & token_version revocation check        |   |
 |   |                                                                                 |   |
 |   |  [Layered Execution]                                                            |   |
 |   |    ├── Controllers     -> HTTP status codes, cookie management, response JSON   |   |
@@ -94,17 +95,21 @@ QuikInvoice is engineered to balance real-world production robustness with techn
    - `validate(schema)` validates that the payload complies with the Zod schema (`email` is valid, `password` >= 8 chars).
    - `AuthService` hashes the password using `bcryptjs` (salt rounds: 12) or verifies the candidate password using constant-time comparison against the stored hash.
    - If invalid, a generic error (`Invalid email or password`) is thrown to prevent username enumeration attacks.
-   - A signed JWT token is issued containing `{ id, email }` with a 24-hour expiration.
+   - A signed JWT token is issued containing `{ id, email, tokenVersion: user.token_version }` with a 24-hour expiration.
 2. **Cookie & Anti-CSRF Strategy:**
    - The backend sets an `httpOnly`, `SameSite=Lax` cookie named `token`:
      - `httpOnly: true`: Browser JavaScript cannot read `document.cookie`, completely neutralizing XSS token exfiltration.
      - `sameSite: 'lax'`: Browsers will not attach the cookie on cross-site subrequests (such as `<img>`, `<form POST>` from external sites), mitigating Cross-Site Request Forgery (CSRF).
      - `secure: true` in production environments ensures cookies are only transmitted over TLS/HTTPS.
-   - For additional anti-CSRF defense, `axiosClient` automatically includes the custom header `X-Requested-With: XMLHttpRequest`. Standard HTML form submissions cannot attach custom headers across origins without a preflight CORS check.
-3. **Protected Route Authorization:**
+   - **Enforced Server-Side CSRF & Origin Guard (`csrfProtection`):**
+     - For state-changing requests (`POST`, `PUT`, `PATCH`, `DELETE`), incoming `Origin` and `Referer` headers are strictly validated against an approved allowlist (`ALLOWED_ORIGINS`).
+     - For cookie-authenticated requests, `X-Requested-With: XMLHttpRequest` is actively verified by the server. Any request missing or presenting an invalid header is terminated with `403 Forbidden` before reaching business logic.
+3. **Protected Route Authorization & Server-Side Token Revocation:**
    - When calling protected endpoints (`GET /api/auth/me`), `requireAuth` middleware checks `req.cookies.token` first, with fallback to `Authorization: Bearer <token>` for automated tests and external clients.
    - The token signature is verified using `jwt.verify(token, env.JWT_SECRET)`.
-   - The active user is retrieved from MySQL (`UserModel.findById(decoded.id)`). If deleted or altered, access is denied.
+   - The active user is retrieved from MySQL (`UserModel.findById(decoded.id)`).
+   - **Revocation Check:** `decoded.tokenVersion` is compared against `user.token_version`. If they do not match (e.g. after logout or password reset), the session is rejected with `401 Unauthorized`.
+   - On `POST /api/auth/logout`, `UserModel.incrementTokenVersion(req.user.id)` is executed in MySQL and the cookie is cleared, immediately invalidating all outstanding tokens for that user across all devices.
    - The sanitized user object is mounted on `req.user`.
 
 ---

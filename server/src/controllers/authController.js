@@ -1,4 +1,5 @@
 import AuthService from '../services/authService.js';
+import UserModel from '../models/userModel.js';
 import env from '../config/env.js';
 
 // Cookie options for secure JWT storage
@@ -20,13 +21,16 @@ export class AuthController {
       // Set JWT in httpOnly cookie
       res.cookie('token', token, COOKIE_OPTIONS);
 
+      const responseData = { user };
+      // Only include token in JSON response for test suites or programmatic API clients
+      if (env.NODE_ENV === 'test' || req.headers['x-api-client']) {
+        responseData.token = token;
+      }
+
       return res.status(201).json({
         success: true,
         message: 'User registered successfully',
-        data: {
-          user,
-          token, // Included for API testing & Bearer client support
-        },
+        data: responseData,
       });
     } catch (error) {
       next(error);
@@ -43,13 +47,16 @@ export class AuthController {
       // Set JWT in httpOnly cookie
       res.cookie('token', token, COOKIE_OPTIONS);
 
+      const responseData = { user };
+      // Only include token in JSON response for test suites or programmatic API clients
+      if (env.NODE_ENV === 'test' || req.headers['x-api-client']) {
+        responseData.token = token;
+      }
+
       return res.status(200).json({
         success: true,
         message: 'Login successful',
-        data: {
-          user,
-          token, // Included for API testing & Bearer client support
-        },
+        data: responseData,
       });
     } catch (error) {
       next(error);
@@ -73,10 +80,16 @@ export class AuthController {
   }
 
   /**
-   * Invalidate session and clear cookie
+   * Invalidate session, revoke server-side token version, and clear cookie
    */
   static async logout(req, res, next) {
     try {
+      // 1. Increment token_version in MySQL to invalidate all active JWTs for this user
+      if (req.user && req.user.id) {
+        await UserModel.incrementTokenVersion(req.user.id);
+      }
+
+      // 2. Clear httpOnly session cookie
       res.clearCookie('token', {
         httpOnly: true,
         secure: env.NODE_ENV === 'production',
