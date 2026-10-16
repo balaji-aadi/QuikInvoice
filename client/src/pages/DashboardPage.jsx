@@ -19,6 +19,9 @@ import {
   TrendingUp,
   Clock,
   CheckCircle,
+  AlertTriangle,
+  DollarSign,
+  ArrowUpRight,
 } from 'lucide-react';
 
 export function DashboardPage() {
@@ -28,47 +31,46 @@ export function DashboardPage() {
     totalClients: 0,
     draftInvoices: 0,
     issuedInvoices: 0,
+    partiallyPaidInvoices: 0,
     paidInvoices: 0,
+    voidInvoices: 0,
     totalBilled: 0,
+    totalCollected: 0,
     totalOutstanding: 0,
+    overdueCount: 0,
+    overdueAmount: 0,
   });
+  const [recentInvoices, setRecentInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadDashboardMetrics() {
+    async function loadDashboardData() {
       try {
         setLoading(true);
-        const [invoicesRes, clientsRes] = await Promise.all([
-          invoiceApi.listInvoices({ limit: 100 }),
+        const [metrics, clientsRes, recentInvoicesRes] = await Promise.all([
+          invoiceApi.getDashboardMetrics(),
           clientApi.listClients({ limit: 1 }),
+          invoiceApi.listInvoices({ limit: 5 }),
         ]);
 
-        const invoiceList = invoicesRes.data || [];
         const clientCount = clientsRes.pagination?.total || 0;
 
-        let totalBilled = 0;
-        let totalOutstanding = 0;
-        let drafts = 0;
-        let issued = 0;
-        let paid = 0;
-
-        invoiceList.forEach((inv) => {
-          totalBilled += Number(inv.total_amount) || 0;
-          totalOutstanding += Number(inv.amount_due) || 0;
-          if (inv.status === 'DRAFT') drafts += 1;
-          if (inv.status === 'ISSUED') issued += 1;
-          if (inv.status === 'PAID') paid += 1;
-        });
-
         setStats({
-          totalInvoices: invoicesRes.pagination?.total || invoiceList.length,
+          totalInvoices: Number(metrics?.total_invoices) || 0,
           totalClients: clientCount,
-          draftInvoices: drafts,
-          issuedInvoices: issued,
-          paidInvoices: paid,
-          totalBilled,
-          totalOutstanding,
+          draftInvoices: Number(metrics?.draft_count) || 0,
+          issuedInvoices: Number(metrics?.issued_count) || 0,
+          partiallyPaidInvoices: Number(metrics?.partially_paid_count) || 0,
+          paidInvoices: Number(metrics?.paid_count) || 0,
+          voidInvoices: Number(metrics?.void_count) || 0,
+          totalBilled: Number(metrics?.total_billed) || 0,
+          totalCollected: Number(metrics?.total_collected) || 0,
+          totalOutstanding: Number(metrics?.total_outstanding) || 0,
+          overdueCount: Number(metrics?.overdue_count) || 0,
+          overdueAmount: Number(metrics?.overdue_amount) || 0,
         });
+
+        setRecentInvoices(recentInvoicesRes.data || []);
       } catch (err) {
         console.error('Failed to load dashboard metrics', err);
       } finally {
@@ -76,7 +78,7 @@ export function DashboardPage() {
       }
     }
 
-    loadDashboardMetrics();
+    loadDashboardData();
   }, []);
 
   const formatCurrency = (val) => {
@@ -84,6 +86,21 @@ export function DashboardPage() {
       style: 'currency',
       currency: 'USD',
     }).format(Number(val) || 0);
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '—';
+    const parts = dateStr.split('T')[0].split('-');
+    if (parts.length === 3) {
+      const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'UTC',
+      });
+    }
+    return dateStr;
   };
 
   return (
@@ -122,9 +139,9 @@ export function DashboardPage() {
           </div>
         </div>
 
-        {/* Financial & Operational Metric Cards */}
+        {/* Financial KPI Rollup Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-          {/* Card 1: Total Receivables / Invoiced */}
+          {/* Card 1: Total Billed */}
           <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
             <div className="flex items-center justify-between text-slate-500 mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider">Total Billed</span>
@@ -135,10 +152,24 @@ export function DashboardPage() {
             <div className="text-2xl font-black text-slate-900 font-mono">
               {loading ? '...' : formatCurrency(stats.totalBilled)}
             </div>
-            <p className="text-xs text-slate-500 mt-1">Across all issued & draft invoices</p>
+            <p className="text-xs text-slate-500 mt-1">Excludes draft & void invoices</p>
           </div>
 
-          {/* Card 2: Total Outstanding */}
+          {/* Card 2: Total Collected */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
+            <div className="flex items-center justify-between text-slate-500 mb-2">
+              <span className="text-xs font-semibold uppercase tracking-wider">Total Collected</span>
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <DollarSign className="w-4 h-4" />
+              </div>
+            </div>
+            <div className="text-2xl font-black text-emerald-600 font-mono">
+              {loading ? '...' : formatCurrency(stats.totalCollected)}
+            </div>
+            <p className="text-xs text-slate-500 mt-1">Persisted payment transactions</p>
+          </div>
+
+          {/* Card 3: Total Outstanding Due */}
           <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
             <div className="flex items-center justify-between text-slate-500 mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider">Outstanding Due</span>
@@ -152,98 +183,103 @@ export function DashboardPage() {
             <p className="text-xs text-slate-500 mt-1">Awaiting client payment</p>
           </div>
 
-          {/* Card 3: Active Invoices */}
+          {/* Card 4: Overdue Balance */}
           <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
             <div className="flex items-center justify-between text-slate-500 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">Invoices</span>
-              <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                <Receipt className="w-4 h-4" />
+              <span className="text-xs font-semibold uppercase tracking-wider">Overdue</span>
+              <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
+                <AlertTriangle className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-black text-slate-900 font-mono">
-              {loading ? '...' : stats.totalInvoices}
+            <div className="text-2xl font-black text-rose-600 font-mono">
+              {loading ? '...' : formatCurrency(stats.overdueAmount)}
             </div>
-            <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
-              <span>{stats.draftInvoices} draft</span>
-              <span>•</span>
-              <span>{stats.issuedInvoices} issued</span>
-            </div>
-          </div>
-
-          {/* Card 4: Total Clients */}
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
-            <div className="flex items-center justify-between text-slate-500 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">Clients</span>
-              <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <Users className="w-4 h-4" />
-              </div>
-            </div>
-            <div className="text-2xl font-black text-slate-900 font-mono">
-              {loading ? '...' : stats.totalClients}
-            </div>
-            <Link
-              to="/clients"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-700 mt-1"
-            >
-              Manage directory <ArrowRight className="w-3 h-3" />
-            </Link>
+            <p className="text-xs text-slate-500 mt-1">
+              {stats.overdueCount} invoice(s) past due date
+            </p>
           </div>
         </div>
 
-        {/* Profile Card & System Status */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Business Details Card */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs col-span-1 md:col-span-2">
-            <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-blue-600" />
-              Company Billing Profile
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
-                <span className="text-xs text-slate-500 font-medium block mb-1">Business Name</span>
-                <div className="font-semibold text-slate-900 flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-slate-400" />
-                  {user?.business_name}
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
-                <span className="text-xs text-slate-500 font-medium block mb-1">Billing Contact Email</span>
-                <div className="font-semibold text-slate-900 flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-slate-400" />
-                  {user?.email}
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
-                <span className="text-xs text-slate-500 font-medium block mb-1">Contact Phone</span>
-                <div className="font-semibold text-slate-900 flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-slate-400" />
-                  {user?.business_phone || 'Not configured'}
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
-                <span className="text-xs text-slate-500 font-medium block mb-1">Account Created</span>
-                <div className="font-semibold text-slate-900 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-slate-400" />
-                  {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'Active'}
-                </div>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 sm:col-span-2">
-                <span className="text-xs text-slate-500 font-medium block mb-1">Registered Address</span>
-                <div className="font-medium text-slate-800 flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
-                  {user?.business_address || 'No billing address provided during onboarding.'}
-                </div>
-              </div>
+        {/* Operational Status & Recent Invoices Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          {/* Recent Invoices Table (2 cols) */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs lg:col-span-2">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                <Receipt className="w-5 h-5 text-blue-600" />
+                Recent Invoices
+              </h2>
+              <Link
+                to="/invoices"
+                className="text-xs font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
+              >
+                View all ({stats.totalInvoices}) <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
+
+            {loading ? (
+              <div className="py-8 text-center text-slate-400 text-sm">Loading invoices...</div>
+            ) : recentInvoices.length === 0 ? (
+              <div className="py-8 text-center text-slate-400 text-sm">
+                No invoices found.{' '}
+                <Link to="/invoices/new" className="text-blue-600 font-semibold underline">
+                  Create your first invoice
+                </Link>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-xs font-semibold text-slate-400 uppercase">
+                      <th className="py-2.5 px-2">Invoice #</th>
+                      <th className="py-2.5 px-3">Client</th>
+                      <th className="py-2.5 px-3">Due Date</th>
+                      <th className="py-2.5 px-3 text-right">Total</th>
+                      <th className="py-2.5 px-2 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {recentInvoices.map((inv) => (
+                      <tr key={inv.id} className="hover:bg-slate-50/60">
+                        <td className="py-3 px-2 font-mono font-semibold text-slate-800">
+                          <Link to={`/invoices/${inv.id}`} className="hover:text-blue-600">
+                            {inv.invoice_number}
+                          </Link>
+                        </td>
+                        <td className="py-3 px-3 text-slate-700 truncate max-w-xs">
+                          {inv.client_name}
+                        </td>
+                        <td className="py-3 px-3 text-slate-500 text-xs">
+                          {formatDate(inv.due_date)}
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono font-medium text-slate-900">
+                          {formatCurrency(inv.total_amount)}
+                        </td>
+                        <td className="py-3 px-2 text-center">
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                              inv.status === 'PAID'
+                                ? 'bg-emerald-50 text-emerald-700'
+                                : inv.status === 'PARTIALLY_PAID'
+                                ? 'bg-amber-50 text-amber-700'
+                                : inv.status === 'ISSUED'
+                                ? 'bg-blue-50 text-blue-700'
+                                : 'bg-slate-100 text-slate-600'
+                            }`}
+                          >
+                            {inv.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Reconstruction Status Card */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-xs">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs">
             <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
               <Layers className="w-5 h-5 text-indigo-600" />
               Reconstruction Status
@@ -260,16 +296,67 @@ export function DashboardPage() {
               </div>
               <div className="flex items-center justify-between p-2.5 rounded-lg bg-emerald-50 text-emerald-800 font-medium">
                 <span>Phase 2: Invoices, Clients & PDF</span>
+                <span className="font-bold">Passed ✓</span>
+              </div>
+              <div className="flex items-center justify-between p-2.5 rounded-lg bg-emerald-50 text-emerald-800 font-medium">
+                <span>Phase 3: Payments & Concurrency</span>
                 <span className="font-bold">Complete ✓</span>
               </div>
               <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-100 text-slate-600 font-medium">
-                <span>Phase 3: Payments & Testing</span>
+                <span>Phase 4: Audit & Interview Guide</span>
                 <span className="text-slate-500 italic">Next</span>
               </div>
-              <div className="flex items-center justify-between p-2.5 rounded-lg bg-slate-100 text-slate-600 font-medium">
-                <span>Phase 4: Audit & Interview Guide</span>
-                <span className="text-slate-500 italic">Planned</span>
+            </div>
+
+            {/* Invoices Breakdown Pill */}
+            <div className="mt-6 pt-6 border-t border-slate-100">
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+                Invoice Breakdown
               </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="p-2 bg-slate-50 rounded-lg text-slate-700">
+                  <span className="font-bold">{stats.draftInvoices}</span> Drafts
+                </div>
+                <div className="p-2 bg-blue-50 rounded-lg text-blue-700">
+                  <span className="font-bold">{stats.issuedInvoices}</span> Issued
+                </div>
+                <div className="p-2 bg-amber-50 rounded-lg text-amber-700">
+                  <span className="font-bold">{stats.partiallyPaidInvoices}</span> Partial
+                </div>
+                <div className="p-2 bg-emerald-50 rounded-lg text-emerald-700">
+                  <span className="font-bold">{stats.paidInvoices}</span> Paid
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Business Profile Details */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-xs">
+          <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-blue-600" />
+            Company Billing Profile
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="text-xs text-slate-500 font-medium block mb-1">Business Name</span>
+              <div className="font-semibold text-slate-900">{user?.business_name}</div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="text-xs text-slate-500 font-medium block mb-1">Billing Email</span>
+              <div className="font-semibold text-slate-900 truncate">{user?.email}</div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="text-xs text-slate-500 font-medium block mb-1">Contact Phone</span>
+              <div className="font-semibold text-slate-900">{user?.business_phone || 'Not configured'}</div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+              <span className="text-xs text-slate-500 font-medium block mb-1">Total Client Profiles</span>
+              <div className="font-semibold text-slate-900">{stats.totalClients}</div>
             </div>
           </div>
         </div>

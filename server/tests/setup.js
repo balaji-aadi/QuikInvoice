@@ -14,6 +14,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   // Clean test tables in reverse dependency order to ensure isolation without FK conflicts
+  await query('DELETE FROM invoice_payments');
   await query('DELETE FROM invoice_items');
   await query('DELETE FROM invoices');
   await query('DELETE FROM clients');

@@ -11,7 +11,7 @@ export const invoiceApi = {
   },
 
   /**
-   * Get single invoice by ID with line items and client details
+   * Get single invoice by ID with line items, payments, and client details
    */
   async getInvoice(id) {
     const res = await axiosClient.get(`/invoices/${id}`);
@@ -48,6 +48,30 @@ export const invoiceApi = {
   async deleteInvoice(id) {
     const res = await axiosClient.delete(`/invoices/${id}`);
     return res.data;
+  },
+
+  /**
+   * Record a payment against an invoice
+   */
+  async recordPayment(invoiceId, paymentData) {
+    const res = await axiosClient.post(`/invoices/${invoiceId}/payments`, paymentData);
+    return res.data.data;
+  },
+
+  /**
+   * Retrieve payment history for an invoice
+   */
+  async getInvoicePayments(invoiceId) {
+    const res = await axiosClient.get(`/invoices/${invoiceId}/payments`);
+    return res.data;
+  },
+
+  /**
+   * Get aggregated financial metrics for dashboard
+   */
+  async getDashboardMetrics() {
+    const res = await axiosClient.get('/invoices/metrics');
+    return res.data.data;
   },
 
   /**

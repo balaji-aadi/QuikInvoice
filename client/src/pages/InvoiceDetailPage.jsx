@@ -19,6 +19,11 @@ import {
   CheckCircle,
   Receipt,
   User,
+  CreditCard,
+  DollarSign,
+  X,
+  PlusCircle,
+  History,
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
@@ -78,12 +83,25 @@ export function InvoiceDetailPage() {
   const [errorBanner, setErrorBanner] = useState('');
   const [successBanner, setSuccessBanner] = useState('');
 
+  // Payment Modal State
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentDate, setPaymentDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [paymentMethod, setPaymentMethod] = useState('BANK_TRANSFER');
+  const [reference, setReference] = useState('');
+  const [paymentNotes, setPaymentNotes] = useState('');
+  const [recordingPayment, setRecordingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
+
   const loadInvoice = async () => {
     try {
       setLoading(true);
       setErrorBanner('');
       const data = await invoiceApi.getInvoice(id);
       setInvoice(data);
+      if (data && data.amount_due) {
+        setPaymentAmount(data.amount_due);
+      }
     } catch (err) {
       setErrorBanner(err.message || 'Failed to load invoice details');
     } finally {
@@ -135,6 +153,52 @@ export function InvoiceDetailPage() {
     } catch (err) {
       setErrorBanner(err.message || 'Failed to delete invoice');
       setDeleting(false);
+    }
+  };
+
+  const handleOpenPaymentModal = () => {
+    setPaymentAmount(invoice.amount_due);
+    setPaymentDate(new Date().toISOString().split('T')[0]);
+    setPaymentMethod('BANK_TRANSFER');
+    setReference('');
+    setPaymentNotes('');
+    setPaymentError('');
+    setIsPaymentModalOpen(true);
+  };
+
+  const handleRecordPayment = async (e) => {
+    e.preventDefault();
+    const amountNum = parseFloat(paymentAmount);
+    const dueNum = parseFloat(invoice.amount_due);
+
+    if (isNaN(amountNum) || amountNum <= 0) {
+      setPaymentError('Payment amount must be greater than zero.');
+      return;
+    }
+
+    if (amountNum > dueNum) {
+      setPaymentError(`Payment amount cannot exceed remaining balance due of $${dueNum.toFixed(2)}.`);
+      return;
+    }
+
+    try {
+      setRecordingPayment(true);
+      setPaymentError('');
+      await invoiceApi.recordPayment(invoice.id, {
+        amount: amountNum,
+        paymentDate,
+        paymentMethod,
+        reference: reference.trim() || null,
+        notes: paymentNotes.trim() || null,
+      });
+
+      setIsPaymentModalOpen(false);
+      setSuccessBanner(`Payment of $${amountNum.toFixed(2)} recorded successfully.`);
+      await loadInvoice();
+    } catch (err) {
+      setPaymentError(err.message || 'Failed to record payment transaction.');
+    } finally {
+      setRecordingPayment(false);
     }
   };
 
@@ -191,8 +255,15 @@ export function InvoiceDetailPage() {
     );
   }
 
-  const st = STATUS_CONFIG[invoice.status] || STATUS_CONFIG.DRAFT;
+  // Derive status badge config with overdue support
+  const isOverdue = invoice.is_overdue || (invoice.due_date < new Date().toISOString().split('T')[0] && Number(invoice.amount_due) > 0 && !['DRAFT', 'PAID', 'VOID'].includes(invoice.status));
+  const effectiveStatus = isOverdue ? 'OVERDUE' : invoice.status;
+  const st = STATUS_CONFIG[effectiveStatus] || STATUS_CONFIG.DRAFT;
   const StatusIcon = st.icon;
+
+  const canRecordPayment = ['ISSUED', 'PARTIALLY_PAID'].includes(invoice.status) && Number(invoice.amount_due) > 0;
+  const hasPayments = invoice.payments && invoice.payments.length > 0;
+  const percentPaid = Math.min(100, Math.round((Number(invoice.amount_paid) / Number(invoice.total_amount || 1)) * 100));
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
@@ -211,6 +282,17 @@ export function InvoiceDetailPage() {
 
           {/* Quick Actions */}
           <div className="flex flex-wrap items-center gap-2">
+            {/* Record Payment Button */}
+            {canRecordPayment && (
+              <button
+                onClick={handleOpenPaymentModal}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition-colors cursor-pointer"
+              >
+                <DollarSign className="w-4 h-4" />
+                <span>Record Payment</span>
+              </button>
+            )}
+
             {/* Status Transitions */}
             {invoice.status === 'DRAFT' && (
               <button
@@ -223,7 +305,7 @@ export function InvoiceDetailPage() {
               </button>
             )}
 
-            {invoice.status === 'ISSUED' && (
+            {invoice.status === 'ISSUED' && !hasPayments && (
               <button
                 onClick={() => handleStatusChange('VOID')}
                 disabled={updatingStatus}
@@ -265,8 +347,8 @@ export function InvoiceDetailPage() {
               <span className="hidden sm:inline">Print</span>
             </button>
 
-            {/* Delete (DRAFT or VOID only) */}
-            {['DRAFT', 'VOID'].includes(invoice.status) && (
+            {/* Delete (DRAFT or VOID only, and NO payments) */}
+            {['DRAFT', 'VOID'].includes(invoice.status) && !hasPayments && (
               <button
                 onClick={handleDelete}
                 disabled={deleting}
@@ -294,8 +376,39 @@ export function InvoiceDetailPage() {
           </div>
         )}
 
+        {/* Payment Settlement Progress Banner */}
+        {invoice.status !== 'DRAFT' && invoice.status !== 'VOID' && (
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 mb-6 shadow-xs print:hidden">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+              <div className="flex items-center gap-2">
+                <CreditCard className="w-4 h-4 text-slate-500" />
+                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  Payment Status: {invoice.status.replace('_', ' ')}
+                </span>
+              </div>
+              <div className="text-xs font-semibold text-slate-600 font-mono">
+                {formatCurrency(invoice.amount_paid)} paid of {formatCurrency(invoice.total_amount)} ({percentPaid}%)
+              </div>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all duration-500 ${
+                  percentPaid === 100
+                    ? 'bg-emerald-500'
+                    : percentPaid > 0
+                    ? 'bg-amber-500'
+                    : 'bg-slate-300'
+                }`}
+                style={{ width: `${percentPaid}%` }}
+              ></div>
+            </div>
+          </div>
+        )}
+
         {/* Invoice Paper Document Card */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl shadow-sm p-8 sm:p-12 print:border-none print:shadow-none print:p-0">
+        <div className="bg-white border border-slate-200/90 rounded-2xl shadow-sm p-8 sm:p-12 print:border-none print:shadow-none print:p-0 mb-8">
           {/* Header: Company & Invoice # */}
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 pb-8 border-b border-slate-200">
             <div>
@@ -456,20 +569,214 @@ export function InvoiceDetailPage() {
 
               <div className="flex items-center justify-between text-xs text-slate-500">
                 <span>Amount Paid</span>
-                <span className="font-mono text-emerald-600 font-medium">
+                <span className="font-mono text-emerald-600 font-semibold">
                   {formatCurrency(invoice.amount_paid)}
                 </span>
               </div>
 
-              <div className="p-3 bg-blue-50/80 rounded-xl border border-blue-100 flex items-center justify-between font-bold text-blue-900">
-                <span>Balance Due</span>
-                <span className="font-mono text-lg text-blue-700">
+              <div
+                className={`p-3 rounded-xl border flex items-center justify-between font-bold ${
+                  Number(invoice.amount_due) <= 0
+                    ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900'
+                    : 'bg-blue-50/80 border-blue-200 text-blue-900'
+                }`}
+              >
+                <span>{Number(invoice.amount_due) <= 0 ? 'Balance (PAID)' : 'Balance Due'}</span>
+                <span
+                  className={`font-mono text-lg ${
+                    Number(invoice.amount_due) <= 0 ? 'text-emerald-700' : 'text-blue-700'
+                  }`}
+                >
                   {formatCurrency(invoice.amount_due)}
                 </span>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Payments History Ledger Card */}
+        <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden mb-8 print:border-none print:shadow-none">
+          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <History className="w-5 h-5 text-blue-600" />
+              <h3 className="text-base font-bold text-slate-900">Recorded Payment History</h3>
+            </div>
+            {canRecordPayment && (
+              <button
+                onClick={handleOpenPaymentModal}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                Add Payment
+              </button>
+            )}
+          </div>
+
+          {!hasPayments ? (
+            <div className="p-8 text-center text-slate-500 text-sm">
+              No payments have been recorded for this invoice yet.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 bg-slate-50/60 text-xs font-semibold text-slate-500 uppercase">
+                    <th className="py-3 px-6">Payment Date</th>
+                    <th className="py-3 px-6">Method</th>
+                    <th className="py-3 px-6">Reference ID</th>
+                    <th className="py-3 px-6">Notes</th>
+                    <th className="py-3 px-6 text-right">Amount Paid</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {invoice.payments.map((p) => (
+                    <tr key={p.id} className="hover:bg-slate-50/50">
+                      <td className="py-3.5 px-6 font-medium text-slate-800">
+                        {formatDate(p.payment_date)}
+                      </td>
+                      <td className="py-3.5 px-6 text-slate-600">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-700">
+                          {p.payment_method.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-6 font-mono text-xs text-slate-600">
+                        {p.reference || '—'}
+                      </td>
+                      <td className="py-3.5 px-6 text-slate-500 text-xs truncate max-w-xs">
+                        {p.notes || '—'}
+                      </td>
+                      <td className="py-3.5 px-6 text-right font-mono font-bold text-emerald-700">
+                        {formatCurrency(p.amount)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Record Payment Modal */}
+        {isPaymentModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+              <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-5 h-5 text-emerald-600" />
+                  <h3 className="text-lg font-bold text-slate-900">Record Payment</h3>
+                </div>
+                <button
+                  onClick={() => setIsPaymentModalOpen(false)}
+                  className="text-slate-400 hover:text-slate-600 rounded-lg p-1 hover:bg-slate-100 cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleRecordPayment} className="p-6 space-y-4">
+                {paymentError && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-800 rounded-xl text-xs font-medium">
+                    {paymentError}
+                  </div>
+                )}
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-slate-700">
+                      Payment Amount ($) <span className="text-red-500">*</span>
+                    </label>
+                    <span className="text-xs text-slate-500 font-mono">
+                      Balance Due: {formatCurrency(invoice.amount_due)}
+                    </span>
+                  </div>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    max={invoice.amount_due}
+                    required
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Payment Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={paymentDate}
+                    onChange={(e) => setPaymentDate(e.target.value)}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Payment Method <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={paymentMethod}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 cursor-pointer"
+                  >
+                    <option value="BANK_TRANSFER">Bank Wire Transfer</option>
+                    <option value="CREDIT_CARD">Credit / Debit Card</option>
+                    <option value="CASH">Cash</option>
+                    <option value="CHECK">Check</option>
+                    <option value="OTHER">Other / Escrow</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Reference / Transaction ID (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. WIRE-8812, TXN-9901, Cheque #402"
+                    value={reference}
+                    onChange={(e) => setReference(e.target.value)}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Notes (Optional)
+                  </label>
+                  <textarea
+                    rows={2}
+                    placeholder="Additional context or notes for accounting reconciliation..."
+                    value={paymentNotes}
+                    onChange={(e) => setPaymentNotes(e.target.value)}
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-600"
+                  ></textarea>
+                </div>
+
+                <div className="pt-2 flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsPaymentModalOpen(false)}
+                    className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={recordingPayment}
+                    className="px-5 py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs disabled:opacity-60 cursor-pointer"
+                  >
+                    {recordingPayment ? 'Recording...' : 'Confirm Payment'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

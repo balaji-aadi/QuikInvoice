@@ -7,7 +7,7 @@ import PDFDocument from 'pdfkit';
 export class PdfService {
   /**
    * Render invoice to a writable stream (e.g. Express res)
-   * @param {Object} invoice - Full invoice entity with items and client details
+   * @param {Object} invoice - Full invoice entity with items, payments, and client details
    * @param {Object} user - Business owner entity
    * @param {import('stream').Writable} outputStream - Express res or file stream
    */
@@ -180,7 +180,7 @@ export class PdfService {
     // 4. Totals Summary Block
     // ==========================================
     currentY += 15;
-    if (currentY > 660) {
+    if (currentY > 640) {
       doc.addPage();
       currentY = 40;
     }
@@ -240,34 +240,54 @@ export class PdfService {
       });
 
     currentY += 16;
+    const balanceDueNum = parseFloat(invoice.amount_due);
+    const balanceColor = balanceDueNum <= 0 ? '#16a34a' : '#dc2626'; // Green if fully paid, red if due
+    const balanceLabel = balanceDueNum <= 0 ? 'Balance Due (PAID):' : 'Balance Due:';
+
     doc
       .fontSize(10)
       .font('Helvetica-Bold')
-      .fillColor('#dc2626') // Red for balance due
-      .text('Balance Due:', summaryLeft, currentY);
-    doc.text(`$${parseFloat(invoice.amount_due).toFixed(2)}`, summaryLeft, currentY, {
+      .fillColor(balanceColor)
+      .text(balanceLabel, summaryLeft, currentY);
+    doc.text(`$${balanceDueNum.toFixed(2)}`, summaryLeft, currentY, {
       align: 'right',
       width: summaryWidth,
     });
 
     // ==========================================
-    // 5. Notes & Footer
+    // 5. Payments History (if any) & Notes
     // ==========================================
-    if (invoice.notes) {
-      const notesY = Math.max(currentY + 30, tableTop + (invoice.items.length * 24) + 60);
-      if (notesY < 740) {
-        doc
-          .fontSize(9)
-          .font('Helvetica-Bold')
-          .fillColor(primaryColor)
-          .text('NOTES & TERMS:', 40, notesY);
+    let notesY = Math.max(currentY + 30, tableTop + (invoice.items.length * 24) + 60);
 
-        doc
-          .fontSize(8.5)
-          .font('Helvetica')
-          .fillColor(secondaryColor)
-          .text(invoice.notes, 40, notesY + 14, { width: 280 });
-      }
+    if (invoice.payments && invoice.payments.length > 0 && notesY < 680) {
+      doc
+        .fontSize(9)
+        .font('Helvetica-Bold')
+        .fillColor(primaryColor)
+        .text('RECORDED PAYMENTS:', 40, notesY);
+
+      notesY += 14;
+      doc.fontSize(8).font('Helvetica').fillColor(secondaryColor);
+      invoice.payments.forEach((p) => {
+        const payLine = `• ${p.payment_date}: $${parseFloat(p.amount).toFixed(2)} via ${p.payment_method.replace('_', ' ')}${p.reference ? ` (Ref: ${p.reference})` : ''}`;
+        doc.text(payLine, 45, notesY, { width: 280 });
+        notesY += 12;
+      });
+      notesY += 8;
+    }
+
+    if (invoice.notes && notesY < 740) {
+      doc
+        .fontSize(9)
+        .font('Helvetica-Bold')
+        .fillColor(primaryColor)
+        .text('NOTES & TERMS:', 40, notesY);
+
+      doc
+        .fontSize(8.5)
+        .font('Helvetica')
+        .fillColor(secondaryColor)
+        .text(invoice.notes, 40, notesY + 14, { width: 280 });
     }
 
     // Page Bottom Watermark

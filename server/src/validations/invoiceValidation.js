@@ -40,6 +40,7 @@ export const createInvoiceSchema = z
     dueDate: z
       .string({ required_error: 'Due date is required' })
       .regex(dateRegex, 'Due date must be in YYYY-MM-DD format'),
+    status: z.enum(['DRAFT', 'ISSUED']).optional().default('DRAFT'),
     notes: z.string().trim().max(2000).optional().nullable(),
     items: z
       .array(lineItemSchema, { required_error: 'At least one line item is required' })

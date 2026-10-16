@@ -2,7 +2,7 @@
 
 **Project:** QuikInvoice — Web-Based Billing & Invoice Management System  
 **Storage Engine:** MySQL 9.5.0 (InnoDB)  
-**Active Schema Version:** Migration 005 (`005_create_invoice_items.sql`)  
+**Active Schema Version:** Migration 006 (`006_create_invoice_payments.sql`)  
 **Character Set:** `utf8mb4` | **Collation:** `utf8mb4_unicode_ci`  
 **Date:** October 16, 2026  
 
@@ -149,11 +149,41 @@ CREATE TABLE invoice_items (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
+
 #### Line Arithmetic Rules:
 - `line_subtotal = round(quantity * unit_price, 2)`
 - `line_tax = round(line_subtotal * (tax_rate / 100), 2)`
 - `line_total = line_subtotal + line_tax`
 - Calculated purely on the server inside `money.js`; browser inputs for subtotals or taxes are discarded.
+
+---
+
+### 2.6 Table: `invoice_payments` (Payment Ledger & Transaction Audit)
+Stores immutable payment records against issued invoices.
+
+```sql
+CREATE TABLE invoice_payments (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    invoice_id INT UNSIGNED NOT NULL,
+    amount DECIMAL(12, 2) NOT NULL,
+    payment_date DATE NOT NULL,
+    payment_method ENUM('BANK_TRANSFER', 'CREDIT_CARD', 'CASH', 'CHECK', 'OTHER') NOT NULL DEFAULT 'BANK_TRANSFER',
+    reference VARCHAR(100) NULL,
+    notes TEXT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_payments_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE RESTRICT,
+    INDEX idx_payments_invoice (invoice_id),
+    INDEX idx_payments_date (payment_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+```
+
+#### Referential Integrity & Accounting Rules:
+- `fk_payments_invoice`: Bound to `invoices.id` using `ON DELETE RESTRICT`. Invoices with recorded financial transactions cannot be deleted or purged, strictly guaranteeing the legal accounting audit trail.
+- `amount`: Fixed-point `DECIMAL(12, 2)` positive monetary value. Checked server-side against outstanding balance (`amount <= amount_due`).
+- `payment_method`: Strictly validated ENUM (`BANK_TRANSFER`, `CREDIT_CARD`, `CASH`, `CHECK`, `OTHER`).
+- `idx_payments_invoice`: Indexed for sub-millisecond retrieval of payment history when viewing an invoice.
+- `idx_payments_date`: Indexed for chronological financial reporting and tax period audits.
+- **Transactional Row Locking:** Payments are recorded inside an atomic MySQL transaction with `SELECT ... FOR UPDATE` row-level locks on the parent invoice to prevent concurrent double-payment race conditions.
 
 ---
 
@@ -184,23 +214,25 @@ CREATE TABLE invoice_items (
        |     address           |               |     subtotal          |
        +-----------------------+               |     tax_total         |
                                                |     total_amount      |
+                                               |     amount_paid       |
+                                               |     amount_due        |
                                                +-----------+-----------+
                                                            | 1
                                            +---------------+---------------+
                                            | has many                      | has many
                                            |                               |
                                +-----------v-----------+       +-----------v-----------+
-                               |     invoice_items     |       |    invoice_payments   | (STAGED - Phase 3)
+                               |     invoice_items     |       |    invoice_payments   | (ACTIVE - Phase 3)
                                +-----------------------+       +-----------------------+
                                | PK  id                |       | PK  id                |
                                | FK  invoice_id        |       | FK  invoice_id        |
                                |     description       |       |     amount            |
                                |     quantity          |       |     payment_date      |
                                |     unit_price        |       |     payment_method    |
-                               |     tax_rate          |       +-----------------------+
-                               |     line_subtotal     |
-                               |     line_tax          |
-                               |     line_total        |
+                               |     tax_rate          |       |     reference         |
+                               |     line_subtotal     |       |     notes             |
+                               |     line_tax          |       |     created_at        |
+                               |     line_total        |       +-----------------------+
                                +-----------------------+
 ```
 

@@ -3,6 +3,21 @@ import PdfService from '../services/pdfService.js';
 
 export class InvoiceController {
   /**
+   * Get dashboard aggregated financial metrics
+   */
+  static async getDashboardMetrics(req, res, next) {
+    try {
+      const metrics = await InvoiceService.getDashboardMetrics(req.user.id);
+      return res.status(200).json({
+        success: true,
+        data: metrics,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * List invoices with filters and pagination
    */
   static async listInvoices(req, res, next) {

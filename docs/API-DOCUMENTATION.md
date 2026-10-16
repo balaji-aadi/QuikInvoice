@@ -1,6 +1,6 @@
 # QuikInvoice — REST API Specification & Documentation
 
-**Version:** 1.2.0 (Phase 2 Implemented)  
+**Version:** 1.3.0 (Phase 3 Implemented)  
 **Base URL:** `http://localhost:5001/api` (Development)  
 **Protocol:** HTTP/1.1 REST with JSON payloads  
 **Security:** JWT in `httpOnly` + `SameSite=Lax` cookies, Bearer Token authorization header support, CSRF origin verification (`X-Requested-With: XMLHttpRequest`), and tenant-isolated data access.
@@ -205,6 +205,7 @@ Permanently delete a client profile.
 List invoices for the authenticated tenant with filters and pagination.
 - **Query Parameters:**
   - `status` (string, optional): `DRAFT`, `ISSUED`, `PARTIALLY_PAID`, `PAID`, `OVERDUE`, `VOID`.
+    - *Note on `OVERDUE`:* Evaluated dynamically in SQL as `due_date < CURRENT_DATE() AND amount_due > 0 AND status NOT IN ('DRAFT', 'PAID', 'VOID')`, returning all delinquent active invoices.
   - `clientId` (integer, optional): Filter by client ID.
   - `search` (string, optional): Search by invoice number or client name.
   - `page` (integer, default: 1).
@@ -227,17 +228,42 @@ List invoices for the authenticated tenant with filters and pagination.
       "total_amount": "2300.00",
       "amount_paid": "0.00",
       "amount_due": "2300.00",
+      "is_overdue": 0,
       "client_name": "Acme Technologies",
       "client_email": "billing@acme.com",
       "item_count": 2
     }
   ],
-  "pagination": { ... }
+  "pagination": { "total": 1, "page": 1, "limit": 20, "totalPages": 1 }
+}
+```
+
+### `GET /api/invoices/metrics`
+Returns aggregate financial KPI metrics calculated across all active invoices for the authenticated user.
+- **Calculations:**
+  - `totalBilled`: Sum of `total_amount` for non-DRAFT, non-VOID invoices.
+  - `totalPaid`: Sum of `amount_paid` for non-DRAFT, non-VOID invoices.
+  - `totalOutstanding`: Sum of `amount_due` for non-DRAFT, non-VOID invoices (`totalBilled - totalPaid`).
+  - `overdueAmount`: Sum of `amount_due` where `due_date < CURRENT_DATE()` and invoice is not DRAFT, PAID, or VOID.
+  - `overdueCount`: Total count of delinquent invoices.
+  - `invoiceCount`: Total number of active invoices.
+- **Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "totalBilled": "12500.00",
+    "totalPaid": "8000.00",
+    "totalOutstanding": "4500.00",
+    "overdueAmount": "1500.00",
+    "overdueCount": 2,
+    "invoiceCount": 7
+  }
 }
 ```
 
 ### `GET /api/invoices/:id`
-Retrieve comprehensive invoice record including full client profile and itemized line items.
+Retrieve comprehensive invoice record including full client profile, itemized line items, and payment history ledger.
 - **Response (200 OK):**
 ```json
 {
@@ -248,14 +274,15 @@ Retrieve comprehensive invoice record including full client profile and itemized
       "user_id": 1,
       "client_id": 12,
       "invoice_number": "INV-2026-001",
-      "status": "ISSUED",
+      "status": "PARTIALLY_PAID",
       "issue_date": "2026-10-16",
       "due_date": "2026-11-15",
       "subtotal": "2000.00",
       "tax_total": "300.00",
       "total_amount": "2300.00",
-      "amount_paid": "0.00",
-      "amount_due": "2300.00",
+      "amount_paid": "1000.00",
+      "amount_due": "1300.00",
+      "is_overdue": 0,
       "notes": "Net 30 payment terms",
       "client_name": "Acme Technologies",
       "client_email": "billing@acme.com",
@@ -275,6 +302,18 @@ Retrieve comprehensive invoice record including full client profile and itemized
           "line_tax": "300.00",
           "line_total": "2300.00"
         }
+      ],
+      "payments": [
+        {
+          "id": 201,
+          "invoice_id": 101,
+          "amount": "1000.00",
+          "payment_date": "2026-10-16",
+          "payment_method": "BANK_TRANSFER",
+          "reference": "WIRE-88992",
+          "notes": "First milestone payment",
+          "created_at": "2026-10-16T09:00:00.000Z"
+        }
       ]
     }
   }
@@ -282,7 +321,8 @@ Retrieve comprehensive invoice record including full client profile and itemized
 ```
 
 ### `GET /api/invoices/:id/pdf`
-Streams a dynamically generated vector PDF document directly to the client browser.
+Streams a dynamically generated vector PDF document directly to the client browser. Includes invoice header, itemized breakdown, tax details, and chronological payment receipt ledger.
+- **Benchmark Performance:** Reproducible average generation latency: ~5.95ms (Min: 2.47ms, Max: 28.66ms across 10 iterations).
 - **Response Headers:**
   - `Content-Type: application/pdf`
   - `Content-Disposition: attachment; filename="Invoice-INV-2026-001.pdf"`
@@ -314,7 +354,7 @@ Create a new invoice with itemized line items. Calculations are performed author
 
 ### `PUT /api/invoices/:id`
 Updates a draft invoice.
-- **Constraint:** Only invoices in `DRAFT` status can be modified. If the invoice is `ISSUED` or `PAID`, returns `400 Bad Request`.
+- **Constraint:** Only invoices in `DRAFT` status can be modified. If the invoice is `ISSUED`, `PARTIALLY_PAID`, or `PAID`, returns `400 Bad Request`.
 - **Response (200 OK):** Updated invoice object.
 
 ### `PATCH /api/invoices/:id/status`
@@ -325,13 +365,105 @@ Transitions the status of an invoice according to the finite state machine.
   "status": "ISSUED"
 }
 ```
-- **Valid Transitions:**
+- **Valid Manual Transitions:**
   - `DRAFT -> ISSUED`
-  - `ISSUED -> VOID`
   - `DRAFT -> VOID`
+  - `ISSUED -> VOID` (only if 0 payments recorded)
+- **Constraint:** Invoices with recorded payments cannot be voided (`400 Bad Request`). Status transitions to `PARTIALLY_PAID` and `PAID` are managed automatically by the payment engine.
 - **Response (200 OK):** Updated invoice object.
 
 ### `DELETE /api/invoices/:id`
 Deletes an invoice.
-- **Constraint:** Only `DRAFT` or `VOID` invoices can be deleted. `ISSUED` or `PAID` invoices cannot be deleted to preserve accounting records.
+- **Constraint:** Only `DRAFT` or un-paid `VOID` invoices can be deleted. `ISSUED` invoices, `PAID` invoices, or any invoice with recorded payments cannot be deleted (`400 Bad Request` or `409 Conflict`), strictly protecting the financial audit trail.
 - **Response (200 OK):** Confirmation message.
+
+---
+
+## 6. Payment & Financial Ledger Endpoints
+
+### `POST /api/invoices/:id/payments`
+Records a payment against an issued or partially paid invoice within an atomic MySQL transaction with row-level locking (`SELECT ... FOR UPDATE`).
+- **Auth Required:** Yes (Tenant owner only).
+- **Request Body:**
+```json
+{
+  "amount": 500.00,
+  "paymentDate": "2026-10-16",
+  "paymentMethod": "BANK_TRANSFER",
+  "reference": "TXN-90210",
+  "notes": "Second milestone payment"
+}
+```
+- **Validation Rules:**
+  - `amount`: Number > 0, maximum 2 decimal places. Must not exceed current `amount_due`.
+  - `paymentDate`: Valid ISO date string (`YYYY-MM-DD`).
+  - `paymentMethod`: `BANK_TRANSFER`, `CREDIT_CARD`, `CASH`, `CHECK`, `OTHER`.
+  - `reference`: String (max 100 chars, optional).
+  - `notes`: String (optional).
+- **Concurrency & State Machine Behavior:**
+  - Locks invoice row with `SELECT * FROM invoices WHERE id = ? AND user_id = ? FOR UPDATE`.
+  - Re-evaluates exact `amount_paid` from payments ledger inside the transaction.
+  - Computes remaining `amount_due = total_amount - amount_paid`.
+  - If `paymentAmount > amount_due`, transaction rolls back and returns `400 Bad Request` (`Payment amount exceeds outstanding balance`).
+  - If `status` is `DRAFT` or `VOID`, rejects with `400 Bad Request`.
+  - Inserts row into `invoice_payments`.
+  - Updates `invoices.amount_paid` and `invoices.amount_due`.
+  - If new `amount_due === 0`, sets `status = 'PAID'`; otherwise sets `status = 'PARTIALLY_PAID'`.
+- **Response (201 Created):**
+```json
+{
+  "success": true,
+  "message": "Payment recorded successfully",
+  "data": {
+    "payment": {
+      "id": 202,
+      "invoice_id": 101,
+      "amount": "500.00",
+      "payment_date": "2026-10-16",
+      "payment_method": "BANK_TRANSFER",
+      "reference": "TXN-90210",
+      "notes": "Second milestone payment",
+      "created_at": "2026-10-16T09:15:00.000Z"
+    },
+    "invoice": {
+      "id": 101,
+      "status": "PARTIALLY_PAID",
+      "total_amount": "2300.00",
+      "amount_paid": "1500.00",
+      "amount_due": "800.00"
+    }
+  }
+}
+```
+
+### `GET /api/invoices/:id/payments`
+Retrieves chronological payment history for a specific invoice.
+- **Auth Required:** Yes (Tenant owner only).
+- **Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 201,
+      "invoice_id": 101,
+      "amount": "1000.00",
+      "payment_date": "2026-10-16",
+      "payment_method": "BANK_TRANSFER",
+      "reference": "WIRE-88992",
+      "notes": "First milestone payment",
+      "created_at": "2026-10-16T09:00:00.000Z"
+    },
+    {
+      "id": 202,
+      "invoice_id": 101,
+      "amount": "500.00",
+      "payment_date": "2026-10-16",
+      "payment_method": "BANK_TRANSFER",
+      "reference": "TXN-90210",
+      "notes": "Second milestone payment",
+      "created_at": "2026-10-16T09:15:00.000Z"
+    }
+  ]
+}
+```

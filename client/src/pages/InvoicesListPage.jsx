@@ -309,7 +309,9 @@ export function InvoicesListPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
                   {invoices.map((inv) => {
-                    const st = STATUS_CONFIG[inv.status] || STATUS_CONFIG.DRAFT;
+                    const isOverdue = inv.is_overdue || (inv.due_date < new Date().toISOString().split('T')[0] && Number(inv.amount_due) > 0 && !['DRAFT', 'PAID', 'VOID'].includes(inv.status));
+                    const effectiveStatus = isOverdue ? 'OVERDUE' : inv.status;
+                    const st = STATUS_CONFIG[effectiveStatus] || STATUS_CONFIG.DRAFT;
                     const StatusIcon = st.icon;
 
                     return (
@@ -348,6 +350,17 @@ export function InvoicesListPage() {
                         </td>
                         <td className="py-4 px-6 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1">
+                            {/* Record payment shortcut */}
+                            {['ISSUED', 'PARTIALLY_PAID'].includes(inv.status) && Number(inv.amount_due) > 0 && (
+                              <Link
+                                to={`/invoices/${inv.id}`}
+                                className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                                title="Record Payment"
+                              >
+                                <span className="text-xs font-bold font-mono">$</span>
+                              </Link>
+                            )}
+
                             {/* View details */}
                             <Link
                               to={`/invoices/${inv.id}`}

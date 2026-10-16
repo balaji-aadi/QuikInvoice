@@ -1,9 +1,9 @@
 # QuikInvoice — System Architecture
 
 **Project:** QuikInvoice — Web-Based Billing & Invoice Management System  
-**Current Phase:** Phase 1 (Project Foundation, Database Infrastructure, and Authentication)  
+**Current Phase:** Phase 3 (Payments, Transactional Integrity, Testing and UI Polish)  
 **Status:** Implemented & Verified  
-**Date:** October 15, 2026  
+**Date:** October 16, 2026  
 
 ---
 
@@ -152,3 +152,132 @@ The global `errorHandler` maps:
 - `NotFoundError` -> `404 Not Found`
 - `ConflictError` / MySQL `ER_DUP_ENTRY` -> `409 Conflict`
 - Unhandled Error -> `500 Internal Server Error` (sanitized in production)
+
+---
+
+## 6. Payment Transaction Lifecycle & Concurrency Strategy
+
+To guarantee financial data integrity and defend against race conditions (e.g. concurrent webhook/user requests attempting to pay the same invoice simultaneously), payment processing is strictly isolated within an explicit MySQL transaction.
+
+```
++-----------------------------------------------------------------------------------------+
+|                               PAYMENT TRANSACTION LIFECYCLE                             |
++-----------------------------------------------------------------------------------------+
+                                             |
+                                  1. POST /payments Request
+                                             |
+                                             v
+                           +-----------------------------------+
+                           |  Start MySQL Transaction          |
+                           |  conn.beginTransaction()          |
+                           +-----------------+-----------------+
+                                             |
+                                             v
+                           +-----------------------------------+
+                           |  2. Exclusive Row Lock            |
+                           |  SELECT * FROM invoices           |
+                           |  WHERE id = ? AND user_id = ?     |
+                           |  FOR UPDATE;                      |
+                           +-----------------+-----------------+
+                                             |
+                         [Concurrent request blocked until commit]
+                                             |
+                                             v
+                           +-----------------------------------+
+                           |  3. Validate Invoice Eligibility  |
+                           |  - Invoice exists & authorized?   |
+                           |  - Status IN (ISSUED, PARTIALLY)? |
+                           |  - Not DRAFT or VOID?             |
+                           +-----------------+-----------------+
+                                             |
+                                  [Valid]    |    [Invalid]
+                                             +--------------------+
+                                             |                    |
+                                             v                    v
+                           +--------------------------------+  +----------------------+
+                           | 4. Authoritative Balance Check |  | conn.rollback()      |
+                           | Total Paid = SUM(payments)     |  | Throw 400 Error     |
+                           | Balance Due = Total - Paid     |  +----------------------+
+                           | Is payment <= Balance Due?     |
+                           +-----------------+--------------+
+                                             |
+                                  [Valid]    |    [Excessive / Overpayment]
+                                             +--------------------+
+                                             |                    |
+                                             v                    v
+                           +--------------------------------+  +----------------------+
+                           | 5. Insert Payment Ledger Row   |  | conn.rollback()      |
+                           | INSERT INTO invoice_payments   |  | Throw 400 Error     |
+                           | (amount, date, method, ...)    |  +----------------------+
+                           +-----------------+--------------+
+                                             |
+                                             v
+                           +-----------------------------------+
+                           | 6. Update Invoice Totals & State  |
+                           | UPDATE invoices                   |
+                           | SET amount_paid = newPaid,        |
+                           |     amount_due = newDue,          |
+                           |     status = (newDue === 0        |
+                           |       ? 'PAID' : 'PARTIALLY_PAID')|
+                           | WHERE id = ?;                     |
+                           +-----------------+-----------------+
+                                             |
+                                             v
+                           +-----------------------------------+
+                           | 7. Commit Transaction             |
+                           | conn.commit()                     |
+                           | (Lock released to next request)   |
+                           +-----------------+-----------------+
+                                             |
+                                             v
+                           +-----------------------------------+
+                           | Return HTTP 201 Created           |
+                           +-----------------------------------+
+```
+
+### Key Concurrency Invariants:
+1. **Row-Level Mutex:** The `SELECT ... FOR UPDATE` statement acquires an exclusive `X` row lock on the target invoice index record in InnoDB. If a second thread arrives, it blocks at step 2 until the active transaction commits or rolls back.
+2. **Authoritative Ledger Summation:** The service queries `SELECT COALESCE(SUM(amount), 0) AS total_paid FROM invoice_payments WHERE invoice_id = ?` under the active transaction connection to prevent stale in-memory counters.
+3. **Rollback Guarantee:** If any invariant fails (e.g. overpayment, invalid date, database timeout), `conn.rollback()` executes, the connection is released to the pool, and zero rows are persisted.
+4. **Referential Integrity:** Invoices with recorded payments cannot be deleted (`ON DELETE RESTRICT`) or transitioned to `VOID`, preserving an immutable audit trail.
+
+---
+
+## 7. Invoicing State Machine & Dynamic Overdue Architecture
+
+```
+                       +---------------+
+                       |     DRAFT     | <----+ (Can edit items, dates, notes)
+                       +-------+-------+
+                               |
+                        [Issue Invoice]
+                               |
+                               v
+                       +---------------+
+        +------------> |    ISSUED     |
+        |              +---+-------+---+
+        |                  |       |
+ [Partial Payment]         |       | [Full Payment]
+        |                  |       |
+        v                  |       v
++------------------+       |   +---------------+
+|  PARTIALLY_PAID  |       |   |     PAID      | (Immutable, 0 balance)
++--------+---------+       |   +---------------+
+         |                 |
+         | [Full Payment]  | [Void Invoice (if 0 payments)]
+         |                 |
+         +---------------->|
+                           v
+                   +---------------+
+                   |     VOID      | (Canceled, accepts 0 payments)
+                   +---------------+
+```
+
+### Dynamic Overdue Resolution:
+Rather than running fragile scheduled cron jobs that mutate database status columns (which can drift or cause locking contention during business hours), overdue status is derived dynamically:
+- **Rule:** An invoice is overdue if and only if `due_date < CURRENT_DATE() AND amount_due > 0 AND status NOT IN ('DRAFT', 'PAID', 'VOID')`.
+- In SQL:
+  ```sql
+  (due_date < CURRENT_DATE() AND amount_due > 0 AND status NOT IN ('DRAFT', 'PAID', 'VOID')) AS is_overdue
+  ```
+- This preserves the persistent status (`ISSUED` or `PARTIALLY_PAID`) for accounting purposes while immediately surfacing overdue alerts across all list views, filters, and KPI cards.

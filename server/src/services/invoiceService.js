@@ -1,5 +1,6 @@
 import InvoiceModel from '../models/invoiceModel.js';
 import ClientModel from '../models/clientModel.js';
+import PaymentModel from '../models/paymentModel.js';
 import { calculateInvoiceTotals } from '../utils/money.js';
 import { NotFoundError, ConflictError, BadRequestError } from '../utils/errors.js';
 
@@ -12,7 +13,7 @@ export class InvoiceService {
   }
 
   /**
-   * Get single invoice by ID with items and client details
+   * Get single invoice by ID with items, payments, and client details
    */
   static async getInvoiceById(id, userId) {
     const invoice = await InvoiceModel.findById(id, userId);
@@ -135,6 +136,20 @@ export class InvoiceService {
       throw new BadRequestError('PAID invoices cannot be reverted to DRAFT status.');
     }
 
+    if (invoice.status === 'PARTIALLY_PAID' && newStatus === 'DRAFT') {
+      throw new BadRequestError('Invoices with recorded payments cannot be reverted to DRAFT status.');
+    }
+
+    // Prevent voiding if payments have already been collected
+    if (newStatus === 'VOID') {
+      const paymentCount = await PaymentModel.countByInvoiceId(id);
+      if (paymentCount > 0) {
+        throw new ConflictError(
+          `Cannot void invoice #${invoice.invoice_number} because it has ${paymentCount} recorded payment(s). Recorded financial transactions must be preserved.`
+        );
+      }
+    }
+
     if (newStatus === invoice.status) {
       return invoice;
     }
@@ -143,7 +158,7 @@ export class InvoiceService {
   }
 
   /**
-   * Delete invoice safely
+   * Delete invoice safely with referential integrity check
    */
   static async deleteInvoice(id, userId) {
     const invoice = await this.getInvoiceById(id, userId);
@@ -155,7 +170,22 @@ export class InvoiceService {
       );
     }
 
+    // Referential guard: never delete invoices with recorded payment history
+    const paymentCount = await PaymentModel.countByInvoiceId(id);
+    if (paymentCount > 0) {
+      throw new ConflictError(
+        `Cannot delete invoice #${invoice.invoice_number} with ${paymentCount} recorded payment(s). Financial records must be retained for audit compliance.`
+      );
+    }
+
     return InvoiceModel.delete(id, userId);
+  }
+
+  /**
+   * Retrieve aggregated financial metrics for dashboard
+   */
+  static async getDashboardMetrics(userId) {
+    return InvoiceModel.getDashboardMetrics(userId);
   }
 }
 
