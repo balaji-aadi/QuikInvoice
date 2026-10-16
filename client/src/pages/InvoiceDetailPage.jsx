@@ -245,10 +245,10 @@ export function InvoiceDetailPage() {
   const percentPaid = Math.min(100, Math.round((Number(invoice.amount_paid) / Number(invoice.total_amount || 1)) * 100));
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#090D16] text-slate-900 dark:text-white flex flex-col font-sans transition-colors duration-200">
       <Navbar />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Navigation & Action Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 print:hidden">
           <Link
@@ -267,7 +267,7 @@ export function InvoiceDetailPage() {
                 onClick={handleOpenPaymentModal}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs transition-colors cursor-pointer"
               >
-                <DollarSign className="w-4 h-4" />
+                <IndianRupee className="w-4 h-4" />
                 <span>Record Payment</span>
               </button>
             )}
@@ -310,7 +310,7 @@ export function InvoiceDetailPage() {
             <button
               onClick={handleDownloadPdf}
               disabled={downloading}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-white bg-[#E34234] hover:bg-[#CB3528] rounded-xl shadow-sm shadow-[#E34234]/20 transition-colors cursor-pointer disabled:opacity-50"
             >
               <Download className="w-3.5 h-3.5" />
               <span>{downloading ? 'Downloading...' : 'Download PDF'}</span>
@@ -357,15 +357,15 @@ export function InvoiceDetailPage() {
 
         {/* Payment Settlement Progress Banner */}
         {invoice.status !== 'DRAFT' && invoice.status !== 'VOID' && (
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 mb-6 shadow-xs print:hidden">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-5 mb-6 shadow-xs print:hidden">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
               <div className="flex items-center gap-2">
                 <CreditCard className="w-4 h-4 text-slate-500" />
-                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                   Payment Status: {invoice.status.replace('_', ' ')}
                 </span>
               </div>
-              <div className="text-xs font-semibold text-slate-600 font-mono tabular-nums">
+              <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 font-mono tabular-nums">
                 {formatINR(invoice.amount_paid)} paid of {formatINR(invoice.total_amount)} ({percentPaid}%)
               </div>
             </div>
@@ -387,17 +387,17 @@ export function InvoiceDetailPage() {
         )}
 
         {/* Invoice Paper Document Card */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl shadow-sm p-8 sm:p-12 print:border-none print:shadow-none print:p-0 mb-8">
+        <div className="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-sm p-8 sm:p-12 print:border-none print:shadow-none print:p-0 mb-8">
           {/* Header: Company & Invoice # */}
-          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 pb-8 border-b border-slate-200">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 pb-8 border-b border-slate-200 dark:border-slate-800">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold">
+                <div className="w-10 h-10 rounded-xl bg-[#E34234] flex items-center justify-center text-white font-bold shadow-xs">
                   <FileText className="w-5 h-5" />
                 </div>
-                <h1 className="text-2xl font-black tracking-tight text-slate-900">INVOICE</h1>
+                <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">INVOICE</h1>
               </div>
-              <p className="font-mono text-base font-bold text-slate-700">
+              <p className="font-mono text-base font-bold text-slate-700 dark:text-slate-300">
                 #{invoice.invoice_number}
               </p>
               <div className="mt-3">
@@ -574,11 +574,11 @@ export function InvoiceDetailPage() {
         </div>
 
         {/* Payments History Ledger Card */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden mb-8 print:border-none print:shadow-none">
-          <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+        <div className="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden mb-8 print:border-none print:shadow-none">
+          <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <History className="w-5 h-5 text-blue-600" />
-              <h3 className="text-base font-bold text-slate-900">Recorded Payment History</h3>
+              <History className="w-5 h-5 text-[#E34234]" />
+              <h3 className="text-base font-bold text-slate-900 dark:text-white">Recorded Payment History</h3>
             </div>
             {canRecordPayment && (
               <button
@@ -637,12 +637,12 @@ export function InvoiceDetailPage() {
 
         {/* Record Payment Modal */}
         {isPaymentModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
-            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-              <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+            <div className="bg-white dark:bg-[#111827] rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+              <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <IndianRupee className="w-5 h-5 text-emerald-600" />
-                  <h3 className="text-lg font-bold text-slate-900">Record Payment</h3>
+                  <IndianRupee className="w-5 h-5 text-[#E34234]" />
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">Record Payment</h3>
                 </div>
                 <button
                   onClick={() => setIsPaymentModalOpen(false)}

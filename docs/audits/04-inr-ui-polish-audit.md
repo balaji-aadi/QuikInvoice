@@ -100,40 +100,58 @@ To solve this cleanly without adding bulky external dependencies:
 
 ---
 
-## 4. UI Polish Changes by Page / Component
+## 4. UI Polish & Application Overhaul
 
-Modest, high-value visual refinements were applied across all existing primary views without changing application scope or introducing extraneous frameworks:
+In response to design and functional review, a comprehensive, enterprise-grade UI overhaul was executed while strictly preserving the existing architecture, backend APIs, and engineering safeguards:
 
-### 1. Dashboard View (`client/src/pages/DashboardPage.jsx`)
-- **Metric Cards:** Replaced generic dollar icons with `IndianRupee`. Added subtle left-accent colored borders (`border-l-4 border-l-blue-600`, `border-l-emerald-600`, `border-l-amber-600`, `border-l-rose-600`) to elevate visual hierarchy.
-- **Tabular Numerals:** Financial figures utilize `tabular-nums font-mono` to prevent horizontal number jitter across varying digit widths.
-- **Recent Invoices Table:** Standardized amounts to `formatINR` and replaced hardcoded dates with localized `formatDate`.
+### 1. Brand Identity & Strict 2-Color Design System
+- **Primary Color:** `#E34234` (Flame Vermilion / Crimson) — applied purposefully to active navigation indicators, primary CTA buttons, brand badges, and financial highlights.
+- **Secondary Color:** `#0F172A` / `#1E293B` (Obsidian Charcoal / Deep Slate) — provides strong grounding and contrast for typography, dark cards, and headers.
+- **Typography:** Upgraded to Google Fonts **Plus Jakarta Sans** for modern, crisp UI readability and **JetBrains Mono** for financial numbers.
+- **Brand Logo Component (`client/src/components/common/Logo.jsx`):** Crafted a custom SVG emblem combining an invoice document outline with a speed-cut accent in `#E34234` and `#0F172A`, paired with modern brand typography.
 
-### 2. Invoices List View (`client/src/pages/InvoicesListPage.jsx`)
-- **Table Alignment & Readability:** Total Amount and Balance Due columns now feature right-aligned `font-mono tabular-nums` for rapid accounting scannability.
-- **Action Icons:** Replaced the text `$` quick-payment button with a clean `IndianRupee` Lucide icon.
-- **Status Badges:** Preserved consistent color coding (Draft = Slate, Issued = Blue, Partially Paid = Amber, Paid = Emerald, Overdue = Rose, Void = Slate).
+### 2. Native Dark Mode Support (`client/src/context/ThemeContext.jsx`)
+- Full theme context with `localStorage` persistence and `prefers-color-scheme` system detection.
+- Sun/Moon toggle switch in the sticky navbar (and in the user profile modal).
+- Seamless dark themes applied across every screen (`#090D16` deep space background, `#111827` elevated surface cards, slate borders).
 
-### 3. Invoice Detail View (`client/src/pages/InvoiceDetailPage.jsx`)
-- **Itemized Ledger:** Unit Price, Line Tax, and Line Total headers and rows formatted in INR with monospace tabular numerals.
-- **Summary Calculations Card:** Subtotal, Total Tax, Total Amount, Amount Paid, and Balance Due formatted with `formatINR`.
-- **Payment Settlement Banner:** Updated percentage and progress bar header to reflect INR paid of total.
-- **Payment History Ledger:** Amount Paid column formatted via `formatINR` with tabular alignment.
-- **Payment Recording Modal:**
-  - Header icon updated to `IndianRupee`.
-  - Form field label updated from `Payment Amount ($)` to `Payment Amount (₹)`.
-  - Balance due live caption and validation alerts formatted in INR.
+### 3. Public Landing Page (`client/src/pages/LandingPage.jsx`)
+- Added public landing view at `/` showcasing:
+  - Announcement badge for native INR (₹) and Indian GST compliance.
+  - Compelling hero section with primary and demo sign-in CTAs.
+  - Interactive sample invoice card demonstrating real-time integer paise math.
+  - 6-feature grid detailing PDF streaming, concurrency locks, multi-tenant isolation, and CSV sync.
 
-### 4. Invoice Create & Edit View (`client/src/pages/InvoiceCreatePage.jsx`)
-- **Line Item Column Header:** Changed `Unit Price ($)` to `Unit Price (₹)`.
-- **Line Total Preview:** Replaced raw string interpolation (`$${comp.lineTotal}`) with `formatINR(comp.lineTotal)`.
-- **Authoritative Calculations Box:** Subtotal, Tax Total, and Total Amount Due live previews formatted via `formatINR`.
-- **Tax Rate Slabs:** Updated tax select dropdown to standard Indian GST slabs:
-  - `0% (GST Exempt / Nil)`
-  - `5% (GST 5%)`
-  - `12% (GST 12%)`
-  - `18% (GST 18% - Standard)`
-  - `28% (GST 28%)`
+### 4. Excel & CSV Import, Template Download, and Export Suite
+- **Shared Utilities (`client/src/utils/csvUtils.js`):** Robust RFC-4180 CSV parser and exporter handling quotes, commas, and newlines.
+- **Modal Component (`client/src/components/common/ImportModal.jsx`):** Drag-and-drop file selector with live table preview, column validation, and error reporting.
+- **Clients Directory:**
+  - One-click **Export CSV** of all client records.
+  - **Download Template** (`clients_import_template.csv`) with sample rows.
+  - **Import CSV** with client email format validation and batch creation.
+- **Invoices Directory:**
+  - **Export CSV** of complete financial history and balances.
+  - **Download Template** (`invoices_import_template.csv`) with line items.
+  - **Import CSV** with automatic client resolution and draft invoice generation.
+
+### 5. Search Debouncing (`client/src/hooks/useDebounce.js`)
+- Created a 350ms debounced search hook to prevent network thrashing and eliminate jarring table refetches as the user types.
+
+### 6. User Profile Section (`client/src/components/profile/UserProfileModal.jsx`)
+- Accessible from the user menu in the Navbar.
+- Displays verified business name, email, contact phone, base currency (INR ₹), tenant isolation ID, JWT token version, and appearance toggles.
+
+### 7. Dashboard Cleanup & Layout Rebalance (`client/src/pages/DashboardPage.jsx`)
+- **Removed "Reconstruction Status" card** (development artifact removed).
+- Fixed left/right padding and margins with balanced `max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8` containers.
+- Added **Revenue Collection Efficiency** progress ring and metric (% collected vs billed).
+- Added **Invoice Lifecycle Matrix** with clickable status filters and **Quick Operations Hub**.
+
+### 8. Authentication Screens Redesign (`LoginPage.jsx` & `RegisterPage.jsx`)
+- Elevated fintech card design with brand logo, `#E34234` gradient buttons, dark mode support, and a "Fill Demo" shortcut button for rapid testing.
+
+### 9. ReferenceError Bug Fix (`InvoiceDetailPage.jsx`)
+- Resolved runtime `ReferenceError: DollarSign is not defined` on line 270 by replacing the leftover icon with Lucide `IndianRupee`.
 
 ---
 

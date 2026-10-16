@@ -246,10 +246,10 @@ export function InvoiceCreatePage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#090D16] text-slate-900 dark:text-white flex flex-col font-sans transition-colors duration-200">
       <Navbar />
 
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Back Link */}
         <div className="mb-6">
           <Link
@@ -270,16 +270,16 @@ export function InvoiceCreatePage() {
         )}
 
         {/* Form Container */}
-        <div className="bg-white border border-slate-200/90 rounded-2xl shadow-xs overflow-hidden">
+        <div className="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-3xl shadow-xs overflow-hidden">
           {/* Header */}
-          <div className="p-6 sm:p-8 border-b border-slate-100 bg-slate-50/50">
+          <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2.5">
-                  <Receipt className="w-6 h-6 text-blue-600" />
+                <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+                  <Receipt className="w-6 h-6 text-[#E34234]" />
                   {editId ? `Edit Draft Invoice #${invoiceNumber}` : 'Create New Invoice'}
                 </h1>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
                   Fill in the client information, line items, and applicable tax rates.
                 </p>
               </div>
@@ -430,9 +430,8 @@ export function InvoiceCreatePage() {
                               placeholder="Service or item description..."
                               value={item.description}
                               onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                              className={`w-full px-3 py-1.5 text-sm bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all ${
-                                formErrors[`item_${index}_desc`] ? 'border-red-400' : 'border-slate-200'
-                              }`}
+                              className={`w-full px-3 py-1.5 text-sm bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all ${formErrors[`item_${index}_desc`] ? 'border-red-400' : 'border-slate-200'
+                                }`}
                             />
                           </td>
                           <td className="py-2.5 px-3">
@@ -564,7 +563,7 @@ export function InvoiceCreatePage() {
                 type="button"
                 disabled={saving || clients.length === 0}
                 onClick={() => handleSubmit('ISSUED')}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-xs hover:shadow-md transition-all disabled:opacity-50 cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-[#E34234] hover:bg-[#CB3528] rounded-xl shadow-sm shadow-[#E34234]/25 hover:shadow-md transition-all disabled:opacity-50 cursor-pointer"
               >
                 <Send className="w-4 h-4" />
                 <span>{saving ? 'Processing...' : 'Save & Issue Invoice'}</span>
