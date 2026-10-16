@@ -205,10 +205,10 @@ export function InvoiceDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#090D16] text-slate-900 dark:text-white flex flex-col font-sans">
         <Navbar />
         <div className="flex-1 flex items-center justify-center p-8">
-          <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-3 border-[#E34234] border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>
     );
@@ -216,15 +216,15 @@ export function InvoiceDetailPage() {
 
   if (!invoice) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#090D16] text-slate-900 dark:text-white flex flex-col font-sans">
         <Navbar />
         <div className="flex-1 max-w-4xl mx-auto px-4 py-16 text-center">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-slate-900 mb-2">Invoice Not Found</h2>
-          <p className="text-sm text-slate-600 mb-6">{errorBanner || 'The requested invoice does not exist or has been removed.'}</p>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Invoice Not Found</h2>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">{errorBanner || 'The requested invoice does not exist or has been removed.'}</p>
           <Link
             to="/invoices"
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#E34234] hover:bg-[#CB3528] rounded-xl"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to Invoices

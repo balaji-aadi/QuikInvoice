@@ -235,10 +235,10 @@ export function InvoiceCreatePage() {
 
   if (loadingInvoice) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#090D16] text-slate-900 dark:text-white flex flex-col font-sans">
         <Navbar />
         <div className="flex-1 flex items-center justify-center p-8">
-          <div className="w-8 h-8 border-3 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-8 h-8 border-3 border-[#E34234] border-t-transparent rounded-full animate-spin"></div>
         </div>
       </div>
     );

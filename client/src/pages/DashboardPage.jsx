@@ -57,8 +57,8 @@ export function DashboardPage() {
           clientApi.listClients({ limit: 1 }),
         ]);
 
-        if (kpiRes.data) {
-          const raw = kpiRes.data;
+        const raw = kpiRes?.data || kpiRes;
+        if (raw) {
           setStats((prev) => ({
             ...prev,
             totalBilled: Number(raw.totalBilled ?? raw.total_billed) || 0,
@@ -71,13 +71,14 @@ export function DashboardPage() {
             issuedInvoices: Number(raw.issuedInvoices ?? raw.issued_count) || 0,
             partiallyPaidInvoices: Number(raw.partiallyPaidInvoices ?? raw.partially_paid_count) || 0,
             paidInvoices: Number(raw.paidInvoices ?? raw.paid_count) || 0,
-            totalClients: clientsRes.pagination?.total || 0,
+            totalClients: clientsRes?.pagination?.total ?? (Array.isArray(clientsRes?.data) ? clientsRes.data.length : 0),
           }));
         }
 
-        if (invoicesRes.data) {
-          setRecentInvoices(invoicesRes.data);
-          setAllInvoices(invoicesRes.data);
+        const invoiceList = invoicesRes?.data || (Array.isArray(invoicesRes) ? invoicesRes : []);
+        if (invoiceList && invoiceList.length > 0) {
+          setRecentInvoices(invoiceList);
+          setAllInvoices(invoiceList);
         }
       } catch (err) {
         console.error('Failed to load dashboard metrics:', err);

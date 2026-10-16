@@ -78,3 +78,16 @@ html.theme-transitioning *::after {
   border-color: #E34234 !important;
   outline: none;
 }
+
+/* Hide number input up/down spin buttons completely */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
+
