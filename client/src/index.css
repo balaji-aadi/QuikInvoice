@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-brand-primary: #E34234;
+  --color-brand-hover: #CB3528;
+  --color-brand-light: #FEF2F2;
+  --color-brand-secondary: #0F172A;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+@layer base {
+  html {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom subtle scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.4);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
+
+/* Smooth global theme transition without glitching */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              fill 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              stroke 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  transition-delay: 0s !important;
+}
+
+/* Global Dark Mode Form Controls to ensure sharp contrast & prevent white boxes */
+.dark input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]),
+.dark select,
+.dark textarea {
+  background-color: #0F172A !important;
+  color: #F8FAFC !important;
+  border-color: #334155 !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748B !important;
+}
+
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  background-color: #1E293B !important;
+  border-color: #E34234 !important;
+  outline: none;
+}
+
+/* Hide number input up/down spin buttons completely */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none !important;
+  margin: 0 !important;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield !important;
+  appearance: textfield !important;
+}
+
