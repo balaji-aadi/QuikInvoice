@@ -253,7 +253,7 @@ export function InvoiceCreatePage() {
         <div className="mb-6">
           <Link
             to="/invoices"
-            className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+            className="inline-flex items-center gap-2 text-sm font-medium text-slate-600  transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Invoices</span>
@@ -429,9 +429,8 @@ export function InvoiceCreatePage() {
                               placeholder="Service or item description..."
                               value={item.description}
                               onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                              className={`w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-900 dark:text-white ${
-                                formErrors[`item_${index}_desc`] ? 'border-red-400' : 'border-slate-200 dark:border-slate-700'
-                              }`}
+                              className={`w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-900 dark:text-white ${formErrors[`item_${index}_desc`] ? 'border-red-400' : 'border-slate-200 dark:border-slate-700'
+                                }`}
                             />
                           </td>
                           <td className="py-2.5 px-3">

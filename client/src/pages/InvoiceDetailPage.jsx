@@ -253,7 +253,7 @@ export function InvoiceDetailPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 print:hidden">
           <Link
             to="/invoices"
-            className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors"
+            className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Invoices</span>
@@ -373,13 +373,12 @@ export function InvoiceDetailPage() {
             {/* Progress Bar */}
             <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
               <div
-                className={`h-full transition-all duration-500 ${
-                  percentPaid === 100
+                className={`h-full transition-all duration-500 ${percentPaid === 100
                     ? 'bg-emerald-500'
                     : percentPaid > 0
-                    ? 'bg-amber-500'
-                    : 'bg-slate-300'
-                }`}
+                      ? 'bg-amber-500'
+                      : 'bg-slate-300'
+                  }`}
                 style={{ width: `${percentPaid}%` }}
               ></div>
             </div>
@@ -554,19 +553,17 @@ export function InvoiceDetailPage() {
               </div>
 
               <div
-                className={`p-3 rounded-xl border flex items-center justify-between font-bold ${
-                  Number(invoice.amount_due) <= 0
+                className={`p-3 rounded-xl border flex items-center justify-between font-bold ${Number(invoice.amount_due) <= 0
                     ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300'
                     : 'bg-blue-50/80 border-blue-200 text-blue-900 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300'
-                }`}
+                  }`}
               >
                 <span>{Number(invoice.amount_due) <= 0 ? 'Balance (PAID)' : 'Balance Due'}</span>
                 <span
-                  className={`font-mono text-lg tabular-nums ${
-                    Number(invoice.amount_due) <= 0
+                  className={`font-mono text-lg tabular-nums ${Number(invoice.amount_due) <= 0
                       ? 'text-emerald-700 dark:text-emerald-400'
                       : 'text-blue-700 dark:text-blue-400'
-                  }`}
+                    }`}
                 >
                   {formatINR(invoice.amount_due)}
                 </span>

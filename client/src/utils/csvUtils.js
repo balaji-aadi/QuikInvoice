@@ -24,11 +24,12 @@ export function downloadFile(filename, content, type = 'text/csv;charset=utf-8;'
  */
 function escapeCsv(val) {
   if (val === null || val === undefined) return '""';
-  const str = String(val);
-  if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-    return `"${str.replace(/"/g, '""')}"`;
+  let str = String(val);
+  // Mitigate CSV / Formula Injection (CWE-1236): prefix risky characters with a single quote
+  if (/^[=\+\-@\t\r]/.test(str)) {
+    str = `'${str}`;
   }
-  return `"${str}"`;
+  return `"${str.replace(/"/g, '""')}"`;
 }
 
 /**
