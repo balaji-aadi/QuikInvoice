@@ -412,34 +412,34 @@ export function InvoiceDetailPage() {
 
             {/* Dates Card */}
             <div className="text-right sm:text-right space-y-1 text-sm">
-              <div className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+              <div className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 Billing Dates
               </div>
               <div>
-                <span className="text-slate-500">Issue Date: </span>
-                <span className="font-semibold text-slate-800">{formatDate(invoice.issue_date)}</span>
+                <span className="text-slate-500 dark:text-slate-400">Issue Date: </span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{formatDate(invoice.issue_date)}</span>
               </div>
               <div>
-                <span className="text-slate-500">Payment Due: </span>
-                <span className="font-semibold text-slate-800">{formatDate(invoice.due_date)}</span>
+                <span className="text-slate-500 dark:text-slate-400">Payment Due: </span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{formatDate(invoice.due_date)}</span>
               </div>
             </div>
           </div>
 
           {/* Client & Billing Parties */}
-          <div className="py-8 grid grid-cols-1 sm:grid-cols-2 gap-8 border-b border-slate-200 text-sm">
+          <div className="py-8 grid grid-cols-1 sm:grid-cols-2 gap-8 border-b border-slate-200 dark:border-slate-800 text-sm">
             {/* Bill To */}
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
                 Billed To
               </h3>
-              <p className="text-base font-bold text-slate-900">{invoice.client_name}</p>
-              <p className="text-slate-600 mt-0.5">{invoice.client_email}</p>
+              <p className="text-base font-bold text-slate-900 dark:text-white">{invoice.client_name}</p>
+              <p className="text-slate-600 dark:text-slate-300 mt-0.5">{invoice.client_email}</p>
               {invoice.client_phone && (
-                <p className="text-slate-600 text-xs mt-0.5">{invoice.client_phone}</p>
+                <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">{invoice.client_phone}</p>
               )}
               {invoice.client_address && (
-                <p className="text-slate-500 text-xs mt-1 whitespace-pre-line">
+                <p className="text-slate-500 dark:text-slate-400 text-xs mt-1 whitespace-pre-line">
                   {invoice.client_address}
                 </p>
               )}
@@ -447,18 +447,18 @@ export function InvoiceDetailPage() {
 
             {/* Issued By */}
             <div className="sm:text-right">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">
                 Issued By
               </h3>
-              <p className="text-base font-bold text-slate-900">
+              <p className="text-base font-bold text-slate-900 dark:text-white">
                 {invoice.business_name || 'QuikInvoice Billing Provider'}
               </p>
-              <p className="text-slate-600 mt-0.5">{invoice.user_email}</p>
+              <p className="text-slate-600 dark:text-slate-300 mt-0.5">{invoice.user_email}</p>
               {invoice.business_phone && (
-                <p className="text-slate-600 text-xs mt-0.5">{invoice.business_phone}</p>
+                <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">{invoice.business_phone}</p>
               )}
               {invoice.business_address && (
-                <p className="text-slate-500 text-xs mt-1 whitespace-pre-line">
+                <p className="text-slate-500 dark:text-slate-400 text-xs mt-1 whitespace-pre-line">
                   {invoice.business_address}
                 </p>
               )}
@@ -473,7 +473,7 @@ export function InvoiceDetailPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                     <th className="py-3 px-2">Description</th>
                     <th className="py-3 px-3 text-right">Qty</th>
                     <th className="py-3 px-3 text-right">Unit Price</th>
@@ -482,26 +482,26 @@ export function InvoiceDetailPage() {
                     <th className="py-3 px-2 text-right">Line Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-sm">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm">
                   {invoice.items &&
                     invoice.items.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50/50">
-                        <td className="py-3.5 px-2 font-medium text-slate-800">
+                      <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td className="py-3.5 px-2 font-medium text-slate-800 dark:text-slate-100">
                           {item.description}
                         </td>
-                        <td className="py-3.5 px-3 text-right text-slate-600 font-mono">
+                        <td className="py-3.5 px-3 text-right text-slate-600 dark:text-slate-300 font-mono">
                           {Number(item.quantity)}
                         </td>
-                        <td className="py-3.5 px-3 text-right text-slate-600 font-mono tabular-nums">
+                        <td className="py-3.5 px-3 text-right text-slate-600 dark:text-slate-300 font-mono tabular-nums">
                           {formatINR(item.unit_price)}
                         </td>
-                        <td className="py-3.5 px-3 text-right text-slate-600 font-mono tabular-nums">
+                        <td className="py-3.5 px-3 text-right text-slate-600 dark:text-slate-300 font-mono tabular-nums">
                           {Number(item.tax_rate)}%
                         </td>
-                        <td className="py-3.5 px-3 text-right text-slate-600 font-mono tabular-nums">
+                        <td className="py-3.5 px-3 text-right text-slate-600 dark:text-slate-300 font-mono tabular-nums">
                           {formatINR(item.line_tax)}
                         </td>
-                        <td className="py-3.5 px-2 text-right font-bold text-slate-900 font-mono tabular-nums">
+                        <td className="py-3.5 px-2 text-right font-bold text-slate-900 dark:text-white font-mono tabular-nums">
                           {formatINR(item.line_total)}
                         </td>
                       </tr>
@@ -512,43 +512,43 @@ export function InvoiceDetailPage() {
           </div>
 
           {/* Totals Summary */}
-          <div className="pt-6 border-t border-slate-200 flex flex-col sm:flex-row items-start justify-between gap-8">
+          <div className="pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-start justify-between gap-8">
             {/* Notes / Instructions */}
             <div className="flex-1 text-sm">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                 Payment Instructions & Terms
               </h4>
-              <p className="text-slate-600 text-xs whitespace-pre-line leading-relaxed max-w-md">
+              <p className="text-slate-600 dark:text-slate-400 text-xs whitespace-pre-line leading-relaxed max-w-md">
                 {invoice.notes || 'Payment is requested according to terms. Thank you for your partnership.'}
               </p>
             </div>
 
             {/* Calculations Box */}
             <div className="w-full sm:w-72 space-y-2.5 text-sm">
-              <div className="flex items-center justify-between text-slate-600">
+              <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
                 <span>Subtotal</span>
-                <span className="font-mono font-medium text-slate-900 tabular-nums">
+                <span className="font-mono font-medium text-slate-900 dark:text-slate-200 tabular-nums">
                   {formatINR(invoice.subtotal)}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-slate-600">
+              <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
                 <span>Total Tax</span>
-                <span className="font-mono font-medium text-slate-900 tabular-nums">
+                <span className="font-mono font-medium text-slate-900 dark:text-slate-200 tabular-nums">
                   {formatINR(invoice.tax_total)}
                 </span>
               </div>
 
-              <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between text-base font-bold text-slate-900">
+              <div className="pt-2.5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-base font-bold text-slate-900 dark:text-white">
                 <span>Total Amount</span>
-                <span className="font-mono text-lg text-slate-900 tabular-nums">
+                <span className="font-mono text-lg text-slate-900 dark:text-white tabular-nums">
                   {formatINR(invoice.total_amount)}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-xs text-slate-500">
+              <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                 <span>Amount Paid</span>
-                <span className="font-mono text-emerald-600 font-semibold tabular-nums">
+                <span className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold tabular-nums">
                   {formatINR(invoice.amount_paid)}
                 </span>
               </div>
@@ -556,14 +556,16 @@ export function InvoiceDetailPage() {
               <div
                 className={`p-3 rounded-xl border flex items-center justify-between font-bold ${
                   Number(invoice.amount_due) <= 0
-                    ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900'
-                    : 'bg-blue-50/80 border-blue-200 text-blue-900'
+                    ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300'
+                    : 'bg-blue-50/80 border-blue-200 text-blue-900 dark:bg-blue-950/40 dark:border-blue-800 dark:text-blue-300'
                 }`}
               >
                 <span>{Number(invoice.amount_due) <= 0 ? 'Balance (PAID)' : 'Balance Due'}</span>
                 <span
                   className={`font-mono text-lg tabular-nums ${
-                    Number(invoice.amount_due) <= 0 ? 'text-emerald-700' : 'text-blue-700'
+                    Number(invoice.amount_due) <= 0
+                      ? 'text-emerald-700 dark:text-emerald-400'
+                      : 'text-blue-700 dark:text-blue-400'
                   }`}
                 >
                   {formatINR(invoice.amount_due)}
@@ -592,14 +594,14 @@ export function InvoiceDetailPage() {
           </div>
 
           {!hasPayments ? (
-            <div className="p-8 text-center text-slate-500 text-sm">
+            <div className="p-8 text-center text-slate-500 dark:text-slate-400 text-sm">
               No payments have been recorded for this invoice yet.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-sm">
                 <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/60 text-xs font-semibold text-slate-500 uppercase">
+                  <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/60 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase">
                     <th className="py-3 px-6">Payment Date</th>
                     <th className="py-3 px-6">Method</th>
                     <th className="py-3 px-6">Reference ID</th>
@@ -607,24 +609,24 @@ export function InvoiceDetailPage() {
                     <th className="py-3 px-6 text-right">Amount Paid</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
                   {invoice.payments.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-50/50">
-                      <td className="py-3.5 px-6 font-medium text-slate-800">
+                    <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                      <td className="py-3.5 px-6 font-medium text-slate-800 dark:text-slate-200">
                         {formatDate(p.payment_date)}
                       </td>
-                      <td className="py-3.5 px-6 text-slate-600">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-slate-100 text-slate-700">
+                      <td className="py-3.5 px-6 text-slate-600 dark:text-slate-300">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                           {p.payment_method.replace('_', ' ')}
                         </span>
                       </td>
-                      <td className="py-3.5 px-6 font-mono text-xs text-slate-600">
+                      <td className="py-3.5 px-6 font-mono text-xs text-slate-600 dark:text-slate-300">
                         {p.reference || '—'}
                       </td>
-                      <td className="py-3.5 px-6 text-slate-500 text-xs truncate max-w-xs">
+                      <td className="py-3.5 px-6 text-slate-500 dark:text-slate-400 text-xs truncate max-w-xs">
                         {p.notes || '—'}
                       </td>
-                      <td className="py-3.5 px-6 text-right font-mono font-bold text-emerald-700 tabular-nums">
+                      <td className="py-3.5 px-6 text-right font-mono font-bold text-emerald-700 dark:text-emerald-400 tabular-nums">
                         {formatINR(p.amount)}
                       </td>
                     </tr>

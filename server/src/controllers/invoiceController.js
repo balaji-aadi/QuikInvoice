@@ -7,7 +7,32 @@ export class InvoiceController {
    */
   static async getDashboardMetrics(req, res, next) {
     try {
-      const metrics = await InvoiceService.getDashboardMetrics(req.user.id);
+      const raw = await InvoiceService.getDashboardMetrics(req.user.id);
+      const metrics = {
+        total_invoices: Number(raw?.total_invoices) || 0,
+        total_billed: Number(raw?.total_billed) || 0,
+        total_collected: Number(raw?.total_collected) || 0,
+        total_outstanding: Number(raw?.total_outstanding) || 0,
+        draft_count: Number(raw?.draft_count) || 0,
+        issued_count: Number(raw?.issued_count) || 0,
+        partially_paid_count: Number(raw?.partially_paid_count) || 0,
+        paid_count: Number(raw?.paid_count) || 0,
+        void_count: Number(raw?.void_count) || 0,
+        overdue_count: Number(raw?.overdue_count) || 0,
+        overdue_amount: Number(raw?.overdue_amount) || 0,
+        // camelCase aliases for frontend
+        totalInvoices: Number(raw?.total_invoices) || 0,
+        totalBilled: Number(raw?.total_billed) || 0,
+        totalCollected: Number(raw?.total_collected) || 0,
+        totalOutstanding: Number(raw?.total_outstanding) || 0,
+        draftInvoices: Number(raw?.draft_count) || 0,
+        issuedInvoices: Number(raw?.issued_count) || 0,
+        partiallyPaidInvoices: Number(raw?.partially_paid_count) || 0,
+        paidInvoices: Number(raw?.paid_count) || 0,
+        voidInvoices: Number(raw?.void_count) || 0,
+        overdueCount: Number(raw?.overdue_count) || 0,
+        overdueAmount: Number(raw?.overdue_amount) || 0,
+      };
       return res.status(200).json({
         success: true,
         data: metrics,

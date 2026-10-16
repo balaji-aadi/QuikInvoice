@@ -7,7 +7,7 @@ import useDebounce from '../hooks/useDebounce';
 import { exportInvoicesToCsv, downloadInvoicesTemplate } from '../utils/csvUtils';
 import ImportModal from '../components/common/ImportModal';
 import {
-  Receipt,
+  FileText,
   PlusCircle,
   Search,
   Filter,
@@ -22,7 +22,6 @@ import {
   Clock,
   CheckCircle,
   Ban,
-  FileText,
   ChevronLeft,
   ChevronRight,
   X,
@@ -413,7 +412,7 @@ export function InvoicesListPage() {
           ) : invoices.length === 0 ? (
             <div className="p-16 text-center">
               <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 mx-auto flex items-center justify-center mb-4">
-                <Receipt className="w-7 h-7" />
+                <FileText className="w-7 h-7 text-[#E34234]" />
               </div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1">
                 {search || selectedStatus ? 'No matching invoices' : 'No invoices generated yet'}

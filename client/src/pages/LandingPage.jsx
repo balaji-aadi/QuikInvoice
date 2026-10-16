@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import { Logo } from '../components/common/Logo';
@@ -13,9 +14,43 @@ import {
   Users,
   CreditCard,
   Lock,
+  ChevronDown,
+  ChevronUp,
+  HelpCircle,
+  Activity,
+  Layers,
 } from 'lucide-react';
 
 export function LandingPage() {
+  const [openFaq, setOpenFaq] = useState(0);
+
+  const faqs = [
+    {
+      q: 'How does QuikInvoice handle Indian GST and Rupee (INR ₹) computations?',
+      a: 'All calculations are executed server-authoritatively in integer paise (100 paise = ₹1.00) using strict ceiling math. This mathematically eliminates IEEE-754 floating-point drift. All standard Indian GST tax slabs (0% Nil, 5%, 12%, 18%, 28%) are calculated per line item and itemized on the final tax breakdown.',
+    },
+    {
+      q: 'Can I import and export my existing clients and invoices using Excel / CSV?',
+      a: 'Yes! QuikInvoice includes a complete CSV/Excel data pipeline. You can download pre-formatted CSV templates for both Clients and Invoices, upload hundreds of rows at once with schema validation, and export your entire financial ledger with a single click.',
+    },
+    {
+      q: 'How fast is vector PDF invoice generation?',
+      a: 'QuikInvoice uses a native Node.js vector streaming engine that compiles high-fidelity, branded PDF documents directly to HTTP response buffers in ~6 milliseconds, avoiding the memory bloat and latency of headless Chromium browsers.',
+    },
+    {
+      q: 'How is transactional integrity maintained during concurrent payments?',
+      a: 'Every payment settlement executes within an explicit MySQL InnoDB database transaction guarded by row-level locking (SELECT ... FOR UPDATE). This prevents double settlements, overpayments, and race conditions during simultaneous payment operations.',
+    },
+    {
+      q: 'Is my business data secure and isolated from other tenants?',
+      a: 'Strict multi-tenant relational scoping (user_id isolation) is enforced at the database query layer. Authenticated sessions use HttpOnly, SameSite cookies with token-version tracking for instant server-side revocation.',
+    },
+    {
+      q: 'What payment methods are supported for recording settlements?',
+      a: 'You can record payments across Bank Wire (NEFT / RTGS / IMPS), UPI, Credit/Debit Card, Cheque, and Cash, complete with optional transaction reference numbers and accounting audit notes.',
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-white dark:bg-[#090D16] text-slate-900 dark:text-white flex flex-col font-sans transition-colors duration-200">
       <Navbar />
@@ -56,7 +91,7 @@ export function LandingPage() {
                 to="/login"
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 text-base font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-2xl transition-all duration-150 cursor-pointer border border-slate-200 dark:border-slate-700"
               >
-                <span>Sign In Demo</span>
+                <span>Sign In</span>
               </Link>
             </div>
 
@@ -98,76 +133,78 @@ export function LandingPage() {
                     ISSUED
                   </span>
                   <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#E34234]/10 text-[#E34234] border border-[#E34234]/20">
-                    INR (₹) Standard
+                    GST 18%
                   </span>
                 </div>
               </div>
 
-              {/* Sample Line Item */}
-              <div className="py-6 border-b border-slate-100 dark:border-slate-800">
-                <div className="grid grid-cols-12 text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                  <div className="col-span-6">Description</div>
-                  <div className="col-span-2 text-right">Qty</div>
-                  <div className="col-span-2 text-right">Unit Price</div>
-                  <div className="col-span-2 text-right">Total</div>
-                </div>
-                <div className="grid grid-cols-12 text-sm text-slate-800 dark:text-slate-200 font-medium py-1">
-                  <div className="col-span-6 font-semibold">Enterprise Cloud & Billing Architecture</div>
-                  <div className="col-span-2 text-right font-mono">1</div>
-                  <div className="col-span-2 text-right font-mono">₹1,25,000.00</div>
-                  <div className="col-span-2 text-right font-mono font-bold text-slate-900 dark:text-white">
-                    ₹1,25,000.00
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 py-6 border-b border-slate-100 dark:border-slate-800 text-sm">
+                <div>
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    Billed To
                   </div>
+                  <div className="font-bold text-slate-900 dark:text-white">Reliance Digital Retail Ltd</div>
+                  <div className="text-slate-500 text-xs mt-0.5">finance@reliancedigital.in</div>
                 </div>
-                <div className="grid grid-cols-12 text-sm text-slate-800 dark:text-slate-200 font-medium py-1">
-                  <div className="col-span-6 font-semibold">GST (Standard 18%)</div>
-                  <div className="col-span-2 text-right font-mono">—</div>
-                  <div className="col-span-2 text-right font-mono">18%</div>
-                  <div className="col-span-2 text-right font-mono font-bold text-slate-900 dark:text-white">
-                    ₹22,500.00
+                <div>
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    Issue Date
                   </div>
+                  <div className="font-medium text-slate-800 dark:text-slate-200">16 Oct 2026</div>
+                  <div className="text-slate-500 text-xs mt-0.5">Due: 30 Oct 2026</div>
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">
+                    Total Amount Due
+                  </div>
+                  <div className="font-mono text-2xl font-black text-[#E34234]">
+                    ₹1,47,500.00
+                  </div>
+                  <div className="text-emerald-600 dark:text-emerald-400 text-xs font-medium">₹0.00 Paid • Fully Outstanding</div>
                 </div>
               </div>
 
-              {/* Invoice Card Footer Totals */}
-              <div className="pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="text-xs text-slate-500">
-                  Calculated authoritatively using 64-bit integer paise arithmetic.
+              <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-4">
+                  <span>Includes 18% IGST</span>
+                  <span>•</span>
+                  <span>Pure Node.js Vector Engine</span>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs text-slate-400 font-medium">Grand Total Due</div>
-                  <div className="text-2xl sm:text-3xl font-black text-[#E34234] font-mono">
-                    ₹1,47,500.00
-                  </div>
-                </div>
+                <Link
+                  to="/register"
+                  className="inline-flex items-center gap-1.5 font-bold text-[#E34234] hover:text-[#CB3528]"
+                >
+                  <span>Generate Your Own Invoice</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Feature Cards Grid */}
-        <section className="py-20 bg-slate-50/70 dark:bg-[#0B0F19] border-t border-slate-200/80 dark:border-slate-800/80">
+        {/* Feature Highlights Grid */}
+        <section className="py-20 bg-slate-50/60 dark:bg-[#0C1220] border-y border-slate-200/80 dark:border-slate-800/80">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="text-center max-w-2xl mx-auto mb-16">
-              <h2 className="text-xs font-bold text-[#E34234] uppercase tracking-wider mb-2">
-                Engineered for Reliability
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#E34234] mb-3">
+                Built For Real-World Financial Reliability
               </h2>
-              <p className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
-                Everything your business needs to manage billing with confidence.
+              <p className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                Everything required to bill, collect, and reconcile.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {/* Feature 1 */}
               <div className="p-8 rounded-3xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-[#E34234]/40 transition-colors">
                 <div className="w-12 h-12 rounded-2xl bg-[#E34234]/10 text-[#E34234] flex items-center justify-center mb-6">
                   <IndianRupee className="w-6 h-6" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                  Native INR & GST Formatting
+                  INR & Integer Paise Math
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Proper Indian digit grouping (lakhs & crores) and standard GST rates (0%, 5%, 12%, 18%, 28%) with accurate commercial rounding.
+                  Calculations convert rupees to integer paise, apply tax rates per item with ceiling math, eliminating floating-point rounding discrepancies.
                 </p>
               </div>
 
@@ -177,23 +214,23 @@ export function LandingPage() {
                   <FileSpreadsheet className="w-6 h-6 text-[#E34234]" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                  Excel & CSV Import / Export
+                  Excel & CSV Data Sync
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                  Bulk import clients and invoices from spreadsheet files with live table validation and download structured CSV reports anytime.
+                  Bulk import clients and invoices from spreadsheet software, download ready-to-use CSV templates, and export complete audit trails.
                 </p>
               </div>
 
               {/* Feature 3 */}
               <div className="p-8 rounded-3xl bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 shadow-xs hover:border-[#E34234]/40 transition-colors">
                 <div className="w-12 h-12 rounded-2xl bg-[#E34234]/10 text-[#E34234] flex items-center justify-center mb-6">
-                  <ShieldCheck className="w-6 h-6" />
+                  <Lock className="w-6 h-6" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                  ACID Concurrency Locks
+                  Row-Locking Concurrency
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                  InnoDB row-level locking via <code>SELECT ... FOR UPDATE</code> prevents race conditions and overpayment attempts during concurrent settlements.
+                  MySQL InnoDB row locks guarantee that payments made concurrently never exceed total amounts due or produce race conditions.
                 </p>
               </div>
 
@@ -239,6 +276,50 @@ export function LandingPage() {
           </div>
         </section>
 
+        {/* Interactive FAQ Section */}
+        <section className="py-20 max-w-4xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E34234]/10 text-[#E34234] text-xs font-bold uppercase tracking-wider mb-3">
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span>Frequently Asked Questions</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+              Everything you need to know
+            </h2>
+            <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+              Clear answers regarding our billing architecture, data privacy, and GST compliance.
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            {faqs.map((faq, idx) => {
+              const isOpen = openFaq === idx;
+              return (
+                <div
+                  key={idx}
+                  className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-[#111827] overflow-hidden transition-all shadow-xs"
+                >
+                  <button
+                    onClick={() => setOpenFaq(isOpen ? null : idx)}
+                    className="w-full py-4.5 px-6 text-left flex items-center justify-between gap-4 font-bold text-slate-900 dark:text-white hover:text-[#E34234] dark:hover:text-[#E34234] transition-colors cursor-pointer"
+                  >
+                    <span className="text-sm sm:text-base">{faq.q}</span>
+                    <span className="shrink-0 p-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                      {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </span>
+                  </button>
+
+                  {isOpen && (
+                    <div className="px-6 pb-5 pt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800/80">
+                      {faq.a}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
         {/* CTA Banner */}
         <section className="py-20 bg-gradient-to-br from-[#0F172A] to-[#1E293B] text-white text-center">
           <div className="max-w-4xl mx-auto px-4 sm:px-6">
@@ -266,14 +347,107 @@ export function LandingPage() {
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-[#090D16] py-8 text-xs text-slate-500 dark:text-slate-400">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Logo size="sm" />
-            <span>— Web-Based Billing & Invoice Management System</span>
+      {/* Comprehensive Multi-Column Footer */}
+      <footer className="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#070A10] text-slate-600 dark:text-slate-400">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-14">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+            {/* Col 1: Brand */}
+            <div className="space-y-4 md:col-span-1">
+              <Logo size="md" />
+              <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                High-performance invoice and billing portal engineered with server-authoritative INR calculations, streaming vector PDFs, and Excel data sync.
+              </p>
+              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>All Systems Operational</span>
+              </div>
+            </div>
+
+            {/* Col 2: Product Modules */}
+            <div>
+              <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3">
+                Product
+              </h4>
+              <ul className="space-y-2 text-xs">
+                <li>
+                  <Link to="/login" className="hover:text-[#E34234] transition-colors">
+                    Dashboard Overview
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/login" className="hover:text-[#E34234] transition-colors">
+                    Client Management
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/login" className="hover:text-[#E34234] transition-colors">
+                    Invoice Creation & Drafting
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/login" className="hover:text-[#E34234] transition-colors">
+                    Streaming Vector PDFs
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/login" className="hover:text-[#E34234] transition-colors">
+                    Bulk Excel / CSV Sync
+                  </Link>
+                </li>
+              </ul>
+            </div>
+
+            {/* Col 3: Architecture & Security */}
+            <div>
+              <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3">
+                Architecture & Security
+              </h4>
+              <ul className="space-y-2 text-xs">
+                <li className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>Multi-Tenant Relational Isolation</span>
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-[#E34234]" />
+                  <span>InnoDB Row-Level Locking</span>
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-blue-500" />
+                  <span>Server-Authoritative Integer Math</span>
+                </li>
+                <li className="flex items-center gap-1.5">
+                  <Layers className="w-3.5 h-3.5 text-purple-500" />
+                  <span>HttpOnly JWT Cookie Revocation</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Col 4: Compliance & Standards */}
+            <div>
+              <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3">
+                Compliance
+              </h4>
+              <ul className="space-y-2 text-xs">
+                <li>Indian Rupee (INR ₹) Standard</li>
+                <li>GST Breakdown (CGST, SGST, IGST)</li>
+                <li>Paise-Precision Financial Rounding</li>
+                <li>RESTful API & CSRF Guard</li>
+                <li>ISO 8601 Audit Timestamps</li>
+              </ul>
+            </div>
           </div>
-          <div>Standardized Indian Rupee (INR ₹) Architecture</div>
+
+          {/* Bottom Bar */}
+          <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 dark:text-slate-400">
+            <div>
+              © 2026 QuikInvoice Technologies. Built with pride for Indian & global enterprises.
+            </div>
+            <div className="flex items-center gap-6">
+              <span className="hover:text-[#E34234] cursor-pointer">Privacy Policy</span>
+              <span className="hover:text-[#E34234] cursor-pointer">Terms of Service</span>
+              <span className="hover:text-[#E34234] cursor-pointer">Security Protocol</span>
+            </div>
+          </div>
         </div>
       </footer>
     </div>

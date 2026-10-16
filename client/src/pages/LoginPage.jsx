@@ -3,22 +3,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Logo } from '../components/common/Logo';
-import { AlertCircle, Lock, Mail, ArrowRight, Sun, Moon, ShieldCheck, Sparkles } from 'lucide-react';
+import { AlertCircle, Lock, Mail, ArrowRight, Sun, Moon, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { login } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
-
-  const handleDemoFill = () => {
-    setEmail('admin@quikinvoice.com');
-    setPassword('Password123!');
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -41,7 +37,7 @@ export function LoginPage() {
       <div className="absolute top-5 right-5">
         <button
           onClick={toggleTheme}
-          className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white shadow-xs transition-colors"
+          className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white shadow-xs transition-colors cursor-pointer"
           title="Toggle theme"
         >
           {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
@@ -71,21 +67,6 @@ export function LoginPage() {
             </div>
           )}
 
-          {/* Quick Demo Credentials Fill */}
-          <div className="mb-6 p-3 rounded-2xl bg-[#E34234]/5 dark:bg-[#E34234]/10 border border-[#E34234]/20 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 dark:text-slate-300">
-              <Sparkles className="w-4 h-4 text-[#E34234]" />
-              <span>Need testing credentials?</span>
-            </div>
-            <button
-              type="button"
-              onClick={handleDemoFill}
-              className="px-2.5 py-1 text-[11px] font-bold text-white bg-[#E34234] hover:bg-[#CB3528] rounded-lg shadow-xs transition-colors cursor-pointer"
-            >
-              Fill Demo
-            </button>
-          </div>
-
           <form className="space-y-4" onSubmit={handleSubmit}>
             <div>
               <label
@@ -104,7 +85,7 @@ export function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@quikinvoice.com"
+                  placeholder="balajiaadi2000@gmail.com"
                   className="block w-full pl-10 pr-3.5 py-2.5 text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-[#E34234]/20 focus:border-[#E34234] focus:bg-white dark:focus:bg-slate-900 transition-all outline-none"
                 />
               </div>
@@ -123,13 +104,21 @@ export function LoginPage() {
                 </div>
                 <input
                   id="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="block w-full pl-10 pr-3.5 py-2.5 text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-[#E34234]/20 focus:border-[#E34234] focus:bg-white dark:focus:bg-slate-900 transition-all outline-none font-mono"
+                  className="block w-full pl-10 pr-10 py-2.5 text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-[#E34234]/20 focus:border-[#E34234] focus:bg-white dark:focus:bg-slate-900 transition-all outline-none font-mono"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 

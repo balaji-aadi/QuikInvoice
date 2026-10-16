@@ -4,7 +4,6 @@ import Navbar from '../components/layout/Navbar';
 import invoiceApi from '../api/invoiceApi';
 import clientApi from '../api/clientApi';
 import {
-  Receipt,
   Plus,
   Trash2,
   ArrowLeft,
@@ -276,7 +275,7 @@ export function InvoiceCreatePage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
-                  <Receipt className="w-6 h-6 text-[#E34234]" />
+                  <FileText className="w-6 h-6 text-[#E34234]" />
                   {editId ? `Edit Draft Invoice #${invoiceNumber}` : 'Create New Invoice'}
                 </h1>
                 <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
@@ -297,21 +296,21 @@ export function InvoiceCreatePage() {
               {/* Client Selector */}
               <div className="sm:col-span-2">
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-semibold text-slate-700">
+                  <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                     Client <span className="text-red-500">*</span>
                   </label>
                   <Link
                     to="/clients"
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 inline-flex items-center gap-1"
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 inline-flex items-center gap-1"
                   >
                     <UserPlus className="w-3 h-3" />
                     New Client
                   </Link>
                 </div>
                 {loadingClients ? (
-                  <div className="h-10 bg-slate-100 rounded-xl animate-pulse"></div>
+                  <div className="h-10 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse"></div>
                 ) : clients.length === 0 ? (
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800">
+                  <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-xl text-xs text-amber-800 dark:text-amber-300">
                     No clients found. Please{' '}
                     <Link to="/clients" className="font-bold underline">
                       create a client
@@ -322,7 +321,7 @@ export function InvoiceCreatePage() {
                   <select
                     value={clientId}
                     onChange={(e) => setClientId(e.target.value)}
-                    className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all cursor-pointer"
+                    className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all cursor-pointer text-slate-900 dark:text-white"
                   >
                     <option value="">Select a client...</option>
                     {clients.map((c) => (
@@ -339,7 +338,7 @@ export function InvoiceCreatePage() {
 
               {/* Invoice Number */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Invoice Number <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -348,7 +347,7 @@ export function InvoiceCreatePage() {
                   value={invoiceNumber}
                   onChange={(e) => setInvoiceNumber(e.target.value)}
                   placeholder="e.g. INV-2026-001"
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-mono"
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-mono text-slate-900 dark:text-white"
                 />
                 {formErrors.invoiceNumber && (
                   <p className="mt-1 text-xs text-red-600 font-medium">{formErrors.invoiceNumber}</p>
@@ -357,7 +356,7 @@ export function InvoiceCreatePage() {
 
               {/* Issue Date */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Issue Date <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -365,7 +364,7 @@ export function InvoiceCreatePage() {
                   required
                   value={issueDate}
                   onChange={(e) => setIssueDate(e.target.value)}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all"
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-900 dark:text-white"
                 />
                 {formErrors.issueDate && (
                   <p className="mt-1 text-xs text-red-600 font-medium">{formErrors.issueDate}</p>
@@ -374,7 +373,7 @@ export function InvoiceCreatePage() {
 
               {/* Due Date */}
               <div className="sm:col-start-4">
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Due Date <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -382,7 +381,7 @@ export function InvoiceCreatePage() {
                   required
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all"
+                  className="w-full px-3.5 py-2 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-900 dark:text-white"
                 />
                 {formErrors.dueDate && (
                   <p className="mt-1 text-xs text-red-600 font-medium">{formErrors.dueDate}</p>
@@ -393,7 +392,7 @@ export function InvoiceCreatePage() {
             {/* Line Items Section */}
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-base font-bold text-slate-900">Line Items & Services</h2>
+                <h2 className="text-base font-bold text-slate-900 dark:text-white">Line Items & Services</h2>
                 <button
                   type="button"
                   onClick={handleAddItem}
@@ -405,10 +404,10 @@ export function InvoiceCreatePage() {
               </div>
 
               {/* Items Table */}
-              <div className="border border-slate-200 rounded-xl overflow-hidden">
+              <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs font-semibold uppercase">
+                    <tr className="bg-slate-50 dark:bg-slate-900/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs font-semibold uppercase">
                       <th className="py-2.5 px-4 w-5/12">Description</th>
                       <th className="py-2.5 px-3 w-2/12">Qty</th>
                       <th className="py-2.5 px-3 w-2/12">Unit Price (₹)</th>
@@ -417,12 +416,12 @@ export function InvoiceCreatePage() {
                       <th className="py-2.5 px-2 w-10 text-center"></th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 text-sm">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm">
                     {items.map((item, index) => {
                       const comp = liveTotals.computedItems[index] || { lineTotal: '0.00' };
 
                       return (
-                        <tr key={index} className="hover:bg-slate-50/50 transition-colors">
+                        <tr key={index} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
                           <td className="py-2.5 px-4">
                             <input
                               type="text"
@@ -430,8 +429,9 @@ export function InvoiceCreatePage() {
                               placeholder="Service or item description..."
                               value={item.description}
                               onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                              className={`w-full px-3 py-1.5 text-sm bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all ${formErrors[`item_${index}_desc`] ? 'border-red-400' : 'border-slate-200'
-                                }`}
+                              className={`w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-900 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-900 dark:text-white ${
+                                formErrors[`item_${index}_desc`] ? 'border-red-400' : 'border-slate-200 dark:border-slate-700'
+                              }`}
                             />
                           </td>
                           <td className="py-2.5 px-3">
@@ -442,7 +442,7 @@ export function InvoiceCreatePage() {
                               required
                               value={item.quantity}
                               onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                              className="w-full px-3 py-1.5 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all"
+                              className="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-900 dark:text-white"
                             />
                           </td>
                           <td className="py-2.5 px-3">
@@ -453,14 +453,14 @@ export function InvoiceCreatePage() {
                               required
                               value={item.unitPrice}
                               onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)}
-                              className="w-full px-3 py-1.5 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-mono"
+                              className="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all font-mono text-slate-900 dark:text-white"
                             />
                           </td>
                           <td className="py-2.5 px-3">
                             <select
                               value={item.taxRate}
                               onChange={(e) => handleItemChange(index, 'taxRate', e.target.value)}
-                              className="w-full px-2.5 py-1.5 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all cursor-pointer"
+                              className="w-full px-2.5 py-1.5 text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all cursor-pointer text-slate-900 dark:text-white"
                             >
                               <option value="0">0% (GST Exempt / Nil)</option>
                               <option value="5">5% (GST 5%)</option>
@@ -469,7 +469,7 @@ export function InvoiceCreatePage() {
                               <option value="28">28% (GST 28%)</option>
                             </select>
                           </td>
-                          <td className="py-2.5 px-4 text-right font-mono font-semibold text-slate-800 tabular-nums">
+                          <td className="py-2.5 px-4 text-right font-mono font-semibold text-slate-800 dark:text-slate-100 tabular-nums">
                             {formatINR(comp.lineTotal)}
                           </td>
                           <td className="py-2.5 px-2 text-center">
@@ -477,7 +477,7 @@ export function InvoiceCreatePage() {
                               <button
                                 type="button"
                                 onClick={() => handleRemoveItem(index)}
-                                className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer"
                                 title="Remove line item"
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -493,10 +493,10 @@ export function InvoiceCreatePage() {
             </div>
 
             {/* Bottom Section: Notes & Live Totals */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start pt-4 border-t border-slate-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start pt-4 border-t border-slate-100 dark:border-slate-800">
               {/* Notes */}
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                   Payment Instructions & Notes
                 </label>
                 <textarea
@@ -504,7 +504,7 @@ export function InvoiceCreatePage() {
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="e.g. Wire transfer details, bank IBAN, payment terms..."
-                  className="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all"
+                  className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all text-slate-900 dark:text-white"
                 ></textarea>
                 <p className="mt-1 text-xs text-slate-400">
                   This note will be rendered directly onto the downloadable PDF invoice.
@@ -512,28 +512,28 @@ export function InvoiceCreatePage() {
               </div>
 
               {/* Authoritative Live Calculation Breakdown */}
-              <div className="bg-slate-50/80 border border-slate-200/90 rounded-2xl p-6 space-y-3">
-                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+              <div className="bg-slate-50/80 dark:bg-slate-900/60 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 space-y-3">
+                <h3 className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
                   Invoice Summary Preview
                 </h3>
 
-                <div className="flex items-center justify-between text-sm text-slate-600">
+                <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-400">
                   <span>Subtotal</span>
-                  <span className="font-mono font-medium text-slate-800 tabular-nums">
+                  <span className="font-mono font-medium text-slate-800 dark:text-slate-200 tabular-nums">
                     {formatINR(liveTotals.subtotal)}
                   </span>
                 </div>
 
-                <div className="flex items-center justify-between text-sm text-slate-600">
+                <div className="flex items-center justify-between text-sm text-slate-600 dark:text-slate-400">
                   <span>Tax Total</span>
-                  <span className="font-mono font-medium text-slate-800 tabular-nums">
+                  <span className="font-mono font-medium text-slate-800 dark:text-slate-200 tabular-nums">
                     {formatINR(liveTotals.taxTotal)}
                   </span>
                 </div>
 
-                <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-base font-bold text-slate-900">
+                <div className="pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between text-base font-bold text-slate-900 dark:text-white">
                   <span>Total Amount Due</span>
-                  <span className="font-mono text-xl text-blue-700 tabular-nums">
+                  <span className="font-mono text-xl text-[#E34234] tabular-nums">
                     {formatINR(liveTotals.totalAmount)}
                   </span>
                 </div>

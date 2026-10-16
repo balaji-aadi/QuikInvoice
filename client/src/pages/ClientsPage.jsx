@@ -12,7 +12,7 @@ import {
   Mail,
   Phone,
   MapPin,
-  Receipt,
+  FileText,
   Edit2,
   Trash2,
   AlertCircle,
@@ -389,7 +389,7 @@ export function ClientsPage() {
                         className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
                         title={`${client.invoice_count || 0} associated invoices`}
                       >
-                        <Receipt className="w-3 h-3 text-slate-400" />
+                        <FileText className="w-3 h-3 text-slate-400" />
                         <span>{client.invoice_count || 0}</span>
                       </span>
                     </div>

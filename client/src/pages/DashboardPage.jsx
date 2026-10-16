@@ -8,7 +8,6 @@ import { formatINR, formatDate } from '../utils/formatters';
 import { exportInvoicesToCsv } from '../utils/csvUtils';
 import {
   TrendingUp,
-  Receipt,
   Users,
   AlertTriangle,
   Clock,
@@ -59,9 +58,19 @@ export function DashboardPage() {
         ]);
 
         if (kpiRes.data) {
+          const raw = kpiRes.data;
           setStats((prev) => ({
             ...prev,
-            ...kpiRes.data,
+            totalBilled: Number(raw.totalBilled ?? raw.total_billed) || 0,
+            totalCollected: Number(raw.totalCollected ?? raw.total_collected) || 0,
+            totalOutstanding: Number(raw.totalOutstanding ?? raw.total_outstanding) || 0,
+            overdueAmount: Number(raw.overdueAmount ?? raw.overdue_amount) || 0,
+            overdueCount: Number(raw.overdueCount ?? raw.overdue_count) || 0,
+            totalInvoices: Number(raw.totalInvoices ?? raw.total_invoices) || 0,
+            draftInvoices: Number(raw.draftInvoices ?? raw.draft_count) || 0,
+            issuedInvoices: Number(raw.issuedInvoices ?? raw.issued_count) || 0,
+            partiallyPaidInvoices: Number(raw.partiallyPaidInvoices ?? raw.partially_paid_count) || 0,
+            paidInvoices: Number(raw.paidInvoices ?? raw.paid_count) || 0,
             totalClients: clientsRes.pagination?.total || 0,
           }));
         }
@@ -284,7 +293,7 @@ export function DashboardPage() {
           {/* Invoice Lifecycle Distribution */}
           <div className="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl p-6 shadow-xs">
             <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-              <Receipt className="w-4 h-4 text-[#E34234]" />
+              <FileText className="w-4 h-4 text-[#E34234]" />
               <span>Invoice Lifecycle Status</span>
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
@@ -399,7 +408,7 @@ export function DashboardPage() {
         <div className="bg-white dark:bg-[#111827] border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden">
           <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Receipt className="w-5 h-5 text-[#E34234]" />
+              <FileText className="w-5 h-5 text-[#E34234]" />
               <h2 className="text-base font-bold text-slate-900 dark:text-white">
                 Recent Invoices
               </h2>

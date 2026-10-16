@@ -15,6 +15,8 @@ import {
   Sun,
   Moon,
   ShieldCheck,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
 
 export function RegisterPage() {
@@ -27,6 +29,7 @@ export function RegisterPage() {
     businessPhone: '',
   });
 
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -72,7 +75,7 @@ export function RegisterPage() {
       <div className="absolute top-5 right-5">
         <button
           onClick={toggleTheme}
-          className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white shadow-xs transition-colors"
+          className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white shadow-xs transition-colors cursor-pointer"
           title="Toggle theme"
         >
           {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
@@ -123,7 +126,7 @@ export function RegisterPage() {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder="Jane Doe"
+                    placeholder="Balaji aadi"
                     className="block w-full pl-10 pr-3.5 py-2.5 text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-[#E34234]/20 focus:border-[#E34234] focus:bg-white dark:focus:bg-slate-900 transition-all outline-none"
                   />
                 </div>
@@ -151,7 +154,7 @@ export function RegisterPage() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="jane@company.com"
+                    placeholder="balajiaadi2000@gmail.com"
                     className="block w-full pl-10 pr-3.5 py-2.5 text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-[#E34234]/20 focus:border-[#E34234] focus:bg-white dark:focus:bg-slate-900 transition-all outline-none"
                   />
                 </div>
@@ -176,13 +179,21 @@ export function RegisterPage() {
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="Min 8 characters (A-Z, 0-9, symbol)"
-                  className="block w-full pl-10 pr-3.5 py-2.5 text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-[#E34234]/20 focus:border-[#E34234] focus:bg-white dark:focus:bg-slate-900 transition-all outline-none font-mono"
+                  className="block w-full pl-10 pr-10 py-2.5 text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-[#E34234]/20 focus:border-[#E34234] focus:bg-white dark:focus:bg-slate-900 transition-all outline-none font-mono"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
               {fieldErrors.password && (
                 <p className="mt-1 text-xs text-red-600">{fieldErrors.password}</p>

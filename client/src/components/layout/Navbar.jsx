@@ -10,7 +10,6 @@ import {
   Building2,
   User,
   LayoutDashboard,
-  Receipt,
   Users,
   PlusCircle,
   Sun,
@@ -55,7 +54,7 @@ export function Navbar() {
                   <span>Dashboard</span>
                 </NavLink>
                 <NavLink to="/invoices" className={navItemClass}>
-                  <Receipt className="w-4 h-4" />
+                  <FileText className="w-4 h-4" />
                   <span>Invoices</span>
                 </NavLink>
                 <NavLink to="/clients" className={navItemClass}>
@@ -149,7 +148,7 @@ export function Navbar() {
               <span>Dashboard</span>
             </NavLink>
             <NavLink to="/invoices" className={navItemClass}>
-              <Receipt className="w-4 h-4" />
+              <FileText className="w-4 h-4" />
               <span>Invoices</span>
             </NavLink>
             <NavLink to="/clients" className={navItemClass}>
