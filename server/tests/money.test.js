@@ -1,4 +1,6 @@
 import {
+  formatINR,
+  formatINRAmount,
   roundMoney,
   toCents,
   fromCents,
@@ -151,4 +153,42 @@ describe('QuikInvoice Phase 3 — Financial Data Integrity & Arithmetic Test Sui
       expect(check.error).toContain('already fully paid');
     });
   });
+
+  describe('Indian Rupee (INR, ₹) Formatting & Numbering Conventions', () => {
+    it('should format zero amounts as ₹0.00', () => {
+      expect(formatINR(0)).toBe('₹0.00');
+      expect(formatINR('0')).toBe('₹0.00');
+      expect(formatINR(null)).toBe('₹0.00');
+      expect(formatINR(undefined)).toBe('₹0.00');
+      expect(formatINR('invalid')).toBe('₹0.00');
+    });
+
+    it('should format amounts using the Indian numbering convention (lakhs & crores)', () => {
+      // Thousands: 1,000.00
+      expect(formatINR(1000)).toBe('₹1,000.00');
+      // Lakhs: 1,25,000.00
+      expect(formatINR(125000)).toBe('₹1,25,000.00');
+      // Ten Lakhs: 10,00,000.00
+      expect(formatINR(1000000)).toBe('₹10,00,000.00');
+      // One Crore: 1,00,00,000.00
+      expect(formatINR(10000000)).toBe('₹1,00,00,000.00');
+    });
+
+    it('should format fractional paise and round to 2 decimal places', () => {
+      expect(formatINR(125000.5)).toBe('₹1,25,000.50');
+      expect(formatINR('9999.99')).toBe('₹9,999.99');
+      expect(formatINR(0.75)).toBe('₹0.75');
+    });
+
+    it('should format negative amounts correctly', () => {
+      expect(formatINR(-500.5)).toBe('-₹500.50');
+    });
+
+    it('should format amounts without currency symbol via formatINRAmount', () => {
+      expect(formatINRAmount(125000)).toBe('1,25,000.00');
+      expect(formatINRAmount(10000000)).toBe('1,00,00,000.00');
+      expect(formatINRAmount(0)).toBe('0.00');
+    });
+  });
 });
+

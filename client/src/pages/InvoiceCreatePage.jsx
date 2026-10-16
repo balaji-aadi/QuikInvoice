@@ -17,6 +17,7 @@ import {
   Send,
   UserPlus,
 } from 'lucide-react';
+import { formatINR } from '../utils/formatters';
 
 export function InvoiceCreatePage() {
   const navigate = useNavigate();
@@ -232,12 +233,6 @@ export function InvoiceCreatePage() {
     }
   };
 
-  const formatCurrency = (val) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(Number(val) || 0);
-  };
 
   if (loadingInvoice) {
     return (
@@ -416,7 +411,7 @@ export function InvoiceCreatePage() {
                     <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs font-semibold uppercase">
                       <th className="py-2.5 px-4 w-5/12">Description</th>
                       <th className="py-2.5 px-3 w-2/12">Qty</th>
-                      <th className="py-2.5 px-3 w-2/12">Unit Price ($)</th>
+                      <th className="py-2.5 px-3 w-2/12">Unit Price (₹)</th>
                       <th className="py-2.5 px-3 w-2/12">Tax Rate (%)</th>
                       <th className="py-2.5 px-4 w-2/12 text-right">Line Total</th>
                       <th className="py-2.5 px-2 w-10 text-center"></th>
@@ -468,16 +463,15 @@ export function InvoiceCreatePage() {
                               onChange={(e) => handleItemChange(index, 'taxRate', e.target.value)}
                               className="w-full px-2.5 py-1.5 text-sm bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 transition-all cursor-pointer"
                             >
-                              <option value="0">0% (Tax Exempt)</option>
-                              <option value="5">5% (Standard GST/PST)</option>
-                              <option value="10">10% (Reduced Rate)</option>
-                              <option value="15">15% (HST)</option>
-                              <option value="18">18% (Standard Rate)</option>
-                              <option value="20">20% (Standard VAT)</option>
+                              <option value="0">0% (GST Exempt / Nil)</option>
+                              <option value="5">5% (GST 5%)</option>
+                              <option value="12">12% (GST 12%)</option>
+                              <option value="18">18% (GST 18% - Standard)</option>
+                              <option value="28">28% (GST 28%)</option>
                             </select>
                           </td>
-                          <td className="py-2.5 px-4 text-right font-mono font-semibold text-slate-800">
-                            ${comp.lineTotal}
+                          <td className="py-2.5 px-4 text-right font-mono font-semibold text-slate-800 tabular-nums">
+                            {formatINR(comp.lineTotal)}
                           </td>
                           <td className="py-2.5 px-2 text-center">
                             {items.length > 1 && (
@@ -526,22 +520,22 @@ export function InvoiceCreatePage() {
 
                 <div className="flex items-center justify-between text-sm text-slate-600">
                   <span>Subtotal</span>
-                  <span className="font-mono font-medium text-slate-800">
-                    {formatCurrency(liveTotals.subtotal)}
+                  <span className="font-mono font-medium text-slate-800 tabular-nums">
+                    {formatINR(liveTotals.subtotal)}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between text-sm text-slate-600">
                   <span>Tax Total</span>
-                  <span className="font-mono font-medium text-slate-800">
-                    {formatCurrency(liveTotals.taxTotal)}
+                  <span className="font-mono font-medium text-slate-800 tabular-nums">
+                    {formatINR(liveTotals.taxTotal)}
                   </span>
                 </div>
 
                 <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-base font-bold text-slate-900">
                   <span>Total Amount Due</span>
-                  <span className="font-mono text-xl text-blue-700">
-                    {formatCurrency(liveTotals.totalAmount)}
+                  <span className="font-mono text-xl text-blue-700 tabular-nums">
+                    {formatINR(liveTotals.totalAmount)}
                   </span>
                 </div>
               </div>

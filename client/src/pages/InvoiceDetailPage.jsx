@@ -20,11 +20,12 @@ import {
   Receipt,
   User,
   CreditCard,
-  DollarSign,
+  IndianRupee,
   X,
   PlusCircle,
   History,
 } from 'lucide-react';
+import { formatINR, formatDate } from '../utils/formatters';
 
 const STATUS_CONFIG = {
   DRAFT: {
@@ -177,7 +178,7 @@ export function InvoiceDetailPage() {
     }
 
     if (amountNum > dueNum) {
-      setPaymentError(`Payment amount cannot exceed remaining balance due of $${dueNum.toFixed(2)}.`);
+      setPaymentError(`Payment amount cannot exceed remaining balance due of ${formatINR(dueNum)}.`);
       return;
     }
 
@@ -193,35 +194,13 @@ export function InvoiceDetailPage() {
       });
 
       setIsPaymentModalOpen(false);
-      setSuccessBanner(`Payment of $${amountNum.toFixed(2)} recorded successfully.`);
+      setSuccessBanner(`Payment of ${formatINR(amountNum)} recorded successfully.`);
       await loadInvoice();
     } catch (err) {
       setPaymentError(err.message || 'Failed to record payment transaction.');
     } finally {
       setRecordingPayment(false);
     }
-  };
-
-  const formatCurrency = (val) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(Number(val) || 0);
-  };
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '—';
-    const parts = dateStr.split('T')[0].split('-');
-    if (parts.length === 3) {
-      const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        timeZone: 'UTC',
-      });
-    }
-    return dateStr;
   };
 
   if (loading) {
@@ -386,8 +365,8 @@ export function InvoiceDetailPage() {
                   Payment Status: {invoice.status.replace('_', ' ')}
                 </span>
               </div>
-              <div className="text-xs font-semibold text-slate-600 font-mono">
-                {formatCurrency(invoice.amount_paid)} paid of {formatCurrency(invoice.total_amount)} ({percentPaid}%)
+              <div className="text-xs font-semibold text-slate-600 font-mono tabular-nums">
+                {formatINR(invoice.amount_paid)} paid of {formatINR(invoice.total_amount)} ({percentPaid}%)
               </div>
             </div>
 
@@ -513,17 +492,17 @@ export function InvoiceDetailPage() {
                         <td className="py-3.5 px-3 text-right text-slate-600 font-mono">
                           {Number(item.quantity)}
                         </td>
-                        <td className="py-3.5 px-3 text-right text-slate-600 font-mono">
-                          {formatCurrency(item.unit_price)}
+                        <td className="py-3.5 px-3 text-right text-slate-600 font-mono tabular-nums">
+                          {formatINR(item.unit_price)}
                         </td>
-                        <td className="py-3.5 px-3 text-right text-slate-600 font-mono">
+                        <td className="py-3.5 px-3 text-right text-slate-600 font-mono tabular-nums">
                           {Number(item.tax_rate)}%
                         </td>
-                        <td className="py-3.5 px-3 text-right text-slate-600 font-mono">
-                          {formatCurrency(item.line_tax)}
+                        <td className="py-3.5 px-3 text-right text-slate-600 font-mono tabular-nums">
+                          {formatINR(item.line_tax)}
                         </td>
-                        <td className="py-3.5 px-2 text-right font-bold text-slate-900 font-mono">
-                          {formatCurrency(item.line_total)}
+                        <td className="py-3.5 px-2 text-right font-bold text-slate-900 font-mono tabular-nums">
+                          {formatINR(item.line_total)}
                         </td>
                       </tr>
                     ))}
@@ -548,29 +527,29 @@ export function InvoiceDetailPage() {
             <div className="w-full sm:w-72 space-y-2.5 text-sm">
               <div className="flex items-center justify-between text-slate-600">
                 <span>Subtotal</span>
-                <span className="font-mono font-medium text-slate-900">
-                  {formatCurrency(invoice.subtotal)}
+                <span className="font-mono font-medium text-slate-900 tabular-nums">
+                  {formatINR(invoice.subtotal)}
                 </span>
               </div>
 
               <div className="flex items-center justify-between text-slate-600">
                 <span>Total Tax</span>
-                <span className="font-mono font-medium text-slate-900">
-                  {formatCurrency(invoice.tax_total)}
+                <span className="font-mono font-medium text-slate-900 tabular-nums">
+                  {formatINR(invoice.tax_total)}
                 </span>
               </div>
 
               <div className="pt-2.5 border-t border-slate-200 flex items-center justify-between text-base font-bold text-slate-900">
                 <span>Total Amount</span>
-                <span className="font-mono text-lg text-slate-900">
-                  {formatCurrency(invoice.total_amount)}
+                <span className="font-mono text-lg text-slate-900 tabular-nums">
+                  {formatINR(invoice.total_amount)}
                 </span>
               </div>
 
               <div className="flex items-center justify-between text-xs text-slate-500">
                 <span>Amount Paid</span>
-                <span className="font-mono text-emerald-600 font-semibold">
-                  {formatCurrency(invoice.amount_paid)}
+                <span className="font-mono text-emerald-600 font-semibold tabular-nums">
+                  {formatINR(invoice.amount_paid)}
                 </span>
               </div>
 
@@ -583,11 +562,11 @@ export function InvoiceDetailPage() {
               >
                 <span>{Number(invoice.amount_due) <= 0 ? 'Balance (PAID)' : 'Balance Due'}</span>
                 <span
-                  className={`font-mono text-lg ${
+                  className={`font-mono text-lg tabular-nums ${
                     Number(invoice.amount_due) <= 0 ? 'text-emerald-700' : 'text-blue-700'
                   }`}
                 >
-                  {formatCurrency(invoice.amount_due)}
+                  {formatINR(invoice.amount_due)}
                 </span>
               </div>
             </div>
@@ -645,8 +624,8 @@ export function InvoiceDetailPage() {
                       <td className="py-3.5 px-6 text-slate-500 text-xs truncate max-w-xs">
                         {p.notes || '—'}
                       </td>
-                      <td className="py-3.5 px-6 text-right font-mono font-bold text-emerald-700">
-                        {formatCurrency(p.amount)}
+                      <td className="py-3.5 px-6 text-right font-mono font-bold text-emerald-700 tabular-nums">
+                        {formatINR(p.amount)}
                       </td>
                     </tr>
                   ))}
@@ -662,7 +641,7 @@ export function InvoiceDetailPage() {
             <div className="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-150">
               <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-emerald-600" />
+                  <IndianRupee className="w-5 h-5 text-emerald-600" />
                   <h3 className="text-lg font-bold text-slate-900">Record Payment</h3>
                 </div>
                 <button
@@ -683,10 +662,10 @@ export function InvoiceDetailPage() {
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="text-xs font-semibold text-slate-700">
-                      Payment Amount ($) <span className="text-red-500">*</span>
+                      Payment Amount (₹) <span className="text-red-500">*</span>
                     </label>
-                    <span className="text-xs text-slate-500 font-mono">
-                      Balance Due: {formatCurrency(invoice.amount_due)}
+                    <span className="text-xs text-slate-500 font-mono tabular-nums">
+                      Balance Due: {formatINR(invoice.amount_due)}
                     </span>
                   </div>
                   <input

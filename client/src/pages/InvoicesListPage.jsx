@@ -20,7 +20,9 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  IndianRupee,
 } from 'lucide-react';
+import { formatINR, formatDate } from '../utils/formatters';
 
 const STATUS_CONFIG = {
   DRAFT: {
@@ -132,29 +134,6 @@ export function InvoicesListPage() {
     } finally {
       setDeleting(false);
     }
-  };
-
-  const formatCurrency = (val) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(Number(val) || 0);
-  };
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '—';
-    // Format YYYY-MM-DD
-    const parts = dateStr.split('-');
-    if (parts.length === 3) {
-      const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        timeZone: 'UTC',
-      });
-    }
-    return dateStr;
   };
 
   return (
@@ -334,11 +313,11 @@ export function InvoicesListPage() {
                         <td className="py-4 px-6 text-slate-600 whitespace-nowrap">
                           {formatDate(inv.due_date)}
                         </td>
-                        <td className="py-4 px-6 text-right font-semibold text-slate-900 whitespace-nowrap">
-                          {formatCurrency(inv.total_amount)}
+                        <td className="py-4 px-6 text-right font-semibold font-mono text-slate-900 whitespace-nowrap tabular-nums">
+                          {formatINR(inv.total_amount)}
                         </td>
-                        <td className="py-4 px-6 text-right font-medium text-slate-600 whitespace-nowrap">
-                          {formatCurrency(inv.amount_due)}
+                        <td className="py-4 px-6 text-right font-medium font-mono text-slate-600 whitespace-nowrap tabular-nums">
+                          {formatINR(inv.amount_due)}
                         </td>
                         <td className="py-4 px-6 text-center whitespace-nowrap">
                           <span
@@ -354,10 +333,10 @@ export function InvoicesListPage() {
                             {['ISSUED', 'PARTIALLY_PAID'].includes(inv.status) && Number(inv.amount_due) > 0 && (
                               <Link
                                 to={`/invoices/${inv.id}`}
-                                className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                                className="p-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors inline-flex items-center"
                                 title="Record Payment"
                               >
-                                <span className="text-xs font-bold font-mono">$</span>
+                                <IndianRupee className="w-3.5 h-3.5" />
                               </Link>
                             )}
 

@@ -7,13 +7,51 @@
  * can cause ledger discrepancies, failed payment reconciliations, and audit violations.
  * 
  * ROUNDING POLICY:
- * - Half-Up (Commercial Rounding): Fractional cents of 0.5 or higher round away from zero.
- * - Integer-Cent Arithmetic: All monetary totals accumulate as 64-bit integer cents.
+ * - Half-Up (Commercial Rounding): Fractional paise of 0.5 or higher round away from zero.
+ * - Integer-Based Arithmetic: All monetary totals accumulate as 64-bit integer paise (1 Rupee = 100 Paise).
  * - Line-Level Rounding: Each line item calculates `lineSubtotal` and `lineTax` rounded to 
- *   2 decimal places (integer cents) before summing into the invoice totals.
+ *   2 decimal places (integer paise) before summing into the invoice totals.
  * - Precision: Quantities support fractional units (e.g. hours, kilograms) with arbitrary 
- *   fractional precision, and unit prices support fractional cents before line rounding.
+ *   fractional precision, and unit prices support fractional paise before line rounding.
  */
+
+const inrCurrencyFormatter = new Intl.NumberFormat('en-IN', {
+  style: 'currency',
+  currency: 'INR',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const inrNumberFormatter = new Intl.NumberFormat('en-IN', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+/**
+ * Format an amount as Indian Rupee currency (e.g. ₹1,25,000.00)
+ * @param {number|string} amount
+ * @returns {string}
+ */
+export function formatINR(amount) {
+  const num = typeof amount === 'string' ? parseFloat(amount) : Number(amount);
+  if (isNaN(num) || !isFinite(num)) {
+    return inrCurrencyFormatter.format(0);
+  }
+  return inrCurrencyFormatter.format(num);
+}
+
+/**
+ * Format a numeric amount using Indian grouping without currency symbol (e.g. 1,25,000.00)
+ * @param {number|string} amount
+ * @returns {string}
+ */
+export function formatINRAmount(amount) {
+  const num = typeof amount === 'string' ? parseFloat(amount) : Number(amount);
+  if (isNaN(num) || !isFinite(num)) {
+    return inrNumberFormatter.format(0);
+  }
+  return inrNumberFormatter.format(num);
+}
 
 /**
  * Safely round a numeric value to specified decimal places using Half-Up rounding
@@ -33,12 +71,12 @@ export function roundMoney(value, decimals = 2) {
 }
 
 /**
- * Convert a dollar amount to integer cents
- * @param {number|string} dollars
- * @returns {number} Integer cents
+ * Convert a monetary amount (in Rupees) to integer paise (cents)
+ * @param {number|string} rupees
+ * @returns {number} Integer paise (cents)
  */
-export function toCents(dollars) {
-  const num = typeof dollars === 'string' ? parseFloat(dollars) : Number(dollars);
+export function toCents(rupees) {
+  const num = typeof rupees === 'string' ? parseFloat(rupees) : Number(rupees);
   if (isNaN(num) || !isFinite(num)) {
     return 0;
   }
@@ -47,7 +85,7 @@ export function toCents(dollars) {
 }
 
 /**
- * Convert integer cents back to a fixed 2-decimal dollar number
+ * Convert integer paise (cents) back to a fixed 2-decimal number
  * @param {number} cents
  * @returns {number}
  */
@@ -164,7 +202,7 @@ export function validatePaymentAmount(paymentAmount, currentBalanceDue) {
   if (payCents > balanceCents) {
     return {
       valid: false,
-      error: `Payment amount of $${fromCents(payCents).toFixed(2)} exceeds remaining balance of $${fromCents(balanceCents).toFixed(2)}`,
+      error: `Payment amount of ${formatINR(fromCents(payCents))} exceeds remaining balance of ${formatINR(fromCents(balanceCents))}`,
       paymentCents: payCents,
       remainingCents: balanceCents,
     };
@@ -178,6 +216,8 @@ export function validatePaymentAmount(paymentAmount, currentBalanceDue) {
 }
 
 export default {
+  formatINR,
+  formatINRAmount,
   roundMoney,
   toCents,
   fromCents,
@@ -185,3 +225,4 @@ export default {
   calculateInvoiceTotals,
   validatePaymentAmount,
 };
+

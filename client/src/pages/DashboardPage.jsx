@@ -20,9 +20,10 @@ import {
   Clock,
   CheckCircle,
   AlertTriangle,
-  DollarSign,
+  IndianRupee,
   ArrowUpRight,
 } from 'lucide-react';
+import { formatINR, formatDate } from '../utils/formatters';
 
 export function DashboardPage() {
   const { user } = useAuth();
@@ -81,28 +82,6 @@ export function DashboardPage() {
     loadDashboardData();
   }, []);
 
-  const formatCurrency = (val) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(Number(val) || 0);
-  };
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '—';
-    const parts = dateStr.split('T')[0].split('-');
-    if (parts.length === 3) {
-      const date = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        timeZone: 'UTC',
-      });
-    }
-    return dateStr;
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       <Navbar />
@@ -142,57 +121,57 @@ export function DashboardPage() {
         {/* Financial KPI Rollup Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
           {/* Card 1: Total Billed */}
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs border-l-4 border-l-blue-600">
             <div className="flex items-center justify-between text-slate-500 mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider">Total Billed</span>
               <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
                 <TrendingUp className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-black text-slate-900 font-mono">
-              {loading ? '...' : formatCurrency(stats.totalBilled)}
+            <div className="text-2xl font-black text-slate-900 font-mono tabular-nums">
+              {loading ? '...' : formatINR(stats.totalBilled)}
             </div>
             <p className="text-xs text-slate-500 mt-1">Excludes draft & void invoices</p>
           </div>
 
           {/* Card 2: Total Collected */}
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs border-l-4 border-l-emerald-600">
             <div className="flex items-center justify-between text-slate-500 mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider">Total Collected</span>
               <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <DollarSign className="w-4 h-4" />
+                <IndianRupee className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-black text-emerald-600 font-mono">
-              {loading ? '...' : formatCurrency(stats.totalCollected)}
+            <div className="text-2xl font-black text-emerald-600 font-mono tabular-nums">
+              {loading ? '...' : formatINR(stats.totalCollected)}
             </div>
             <p className="text-xs text-slate-500 mt-1">Persisted payment transactions</p>
           </div>
 
           {/* Card 3: Total Outstanding Due */}
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs border-l-4 border-l-amber-500">
             <div className="flex items-center justify-between text-slate-500 mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider">Outstanding Due</span>
               <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
                 <Clock className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-black text-amber-600 font-mono">
-              {loading ? '...' : formatCurrency(stats.totalOutstanding)}
+            <div className="text-2xl font-black text-amber-600 font-mono tabular-nums">
+              {loading ? '...' : formatINR(stats.totalOutstanding)}
             </div>
             <p className="text-xs text-slate-500 mt-1">Awaiting client payment</p>
           </div>
 
           {/* Card 4: Overdue Balance */}
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs border-l-4 border-l-rose-500">
             <div className="flex items-center justify-between text-slate-500 mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider">Overdue</span>
               <div className="w-8 h-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
                 <AlertTriangle className="w-4 h-4" />
               </div>
             </div>
-            <div className="text-2xl font-black text-rose-600 font-mono">
-              {loading ? '...' : formatCurrency(stats.overdueAmount)}
+            <div className="text-2xl font-black text-rose-600 font-mono tabular-nums">
+              {loading ? '...' : formatINR(stats.overdueAmount)}
             </div>
             <p className="text-xs text-slate-500 mt-1">
               {stats.overdueCount} invoice(s) past due date
@@ -252,8 +231,8 @@ export function DashboardPage() {
                         <td className="py-3 px-3 text-slate-500 text-xs">
                           {formatDate(inv.due_date)}
                         </td>
-                        <td className="py-3 px-3 text-right font-mono font-medium text-slate-900">
-                          {formatCurrency(inv.total_amount)}
+                        <td className="py-3 px-3 text-right font-mono font-medium text-slate-900 tabular-nums">
+                          {formatINR(inv.total_amount)}
                         </td>
                         <td className="py-3 px-2 text-center">
                           <span

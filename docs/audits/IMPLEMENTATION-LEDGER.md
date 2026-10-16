@@ -16,7 +16,8 @@
 | **Phase 1 Sec** | Security Remediation (Port 5001, CSRF Guard, Token Invalidation) | **COMPLETED** | [`01b-phase-1-security-remediation.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/01b-phase-1-security-remediation.md) | User | 2026-10-15 |
 | **Phase 2** | Core Invoicing, Clients, Taxes & PDF Engine | **COMPLETED** | [`02-phase-2-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/02-phase-2-audit.md) | User | 2026-10-16 |
 | **Phase 3** | Payments, Transactions, Security, Testing & UI | **COMPLETED** | [`03-phase-3-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/03-phase-3-audit.md) | User | 2026-10-16 |
-| **Phase 4** | Final Audit, Architecture Docs & Interview Guide | **PLANNED** | `04-final-audit.md` | — | — |
+| **Phase 3 Polish** | INR Standardization, UI Polish & Final Verification | **COMPLETED** | [`04-inr-ui-polish-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/04-inr-ui-polish-audit.md) | User | 2026-10-16 |
+| **Phase 4** | Final Audit, Architecture Docs & Interview Guide | **PLANNED** | `05-final-audit.md` | — | — |
 
 ---
 
@@ -50,6 +51,7 @@
 | `CHG-024` | 2026-10-16 09:15 | Phase 3 | `server/tests/payment.test.js`, `server/tests/setup.js` | Implemented 12 automated payment integration tests including 3-way concurrent race test, overpayment rejection, and tenant isolation | Proves ACID consistency under concurrent load, multi-tenant payment security, and state machine transitions | 12/12 payment tests passing | [`03-phase-3-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/03-phase-3-audit.md#section-8) |
 | `CHG-025` | 2026-10-16 09:25 | Phase 3 | `client/src/api/invoiceApi.js`, `InvoiceDetailPage.jsx`, `InvoicesListPage.jsx`, `DashboardPage.jsx` | Built frontend payment recording modal with live balance validation, payment history table, overdue badges, and live KPI dashboard metrics | Real database financial figures (Billed, Paid, Outstanding, Overdue), zero mock data | `npm run build` passed in 818ms | [`03-phase-3-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/03-phase-3-audit.md#section-7) |
 | `CHG-026` | 2026-10-16 09:35 | Phase 3 | `docs/DATABASE-DESIGN.md`, `docs/API-DOCUMENTATION.md`, `docs/ARCHITECTURE.md`, `docs/ENGINEERING-DECISIONS.md`, `docs/audits/03-phase-3-audit.md` | Authored Phase 3 audit report, ADR-012/013/014, documented empirical PDF benchmarks (~5.95ms), and updated ledger | Comprehensive documentation and interview defensibility for payments and concurrency | All docs verified | [`03-phase-3-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/03-phase-3-audit.md) |
+| `CHG-027` | 2026-10-16 12:45 | Finishing Task | `client/src/utils/formatters.js`, `DashboardPage.jsx`, `InvoicesListPage.jsx`, `InvoiceDetailPage.jsx`, `InvoiceCreatePage.jsx`, `server/src/utils/money.js`, `server/src/services/pdfService.js`, `server/tests/money.test.js` | Standardized application to Indian Rupees (INR, ₹), added shared currency formatters, dynamic font fallback in PDFKit for native Rupee symbol, UI polish across all views, and 5 currency unit tests | Deliver professional Indian business invoicing UX with standard numbering conventions (lakhs/crores), eliminate duplicate formatters, prevent font glyph corruptions in PDF generation | 86/86 automated tests passing, 0 frontend build errors | [`04-inr-ui-polish-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/04-inr-ui-polish-audit.md) |
 
 ---
 
@@ -118,9 +120,9 @@
 | `server/tests/security.test.js` | Integration (Jest/Supertest) | `quikinvoice_test` | 11 | 11 | 0 | 3.58s | `npm test` |
 | `server/tests/client.test.js` | Integration (Jest/Supertest) | `quikinvoice_test` | 12 | 12 | 0 | 12.49s | `npm test` |
 | `server/tests/invoice.test.js` | Integration (Jest/Supertest) | `quikinvoice_test` | 15 | 15 | 0 | 16.13s | `npm test` |
-| `server/tests/money.test.js` | Unit Tests (Jest) | In-Memory Pure JS | 15 | 15 | 0 | 0.82s | `npm test` |
+| `server/tests/money.test.js` | Unit Tests (Jest) | In-Memory Pure JS | 20 | 20 | 0 | 0.84s | `npm test` |
 | `server/tests/payment.test.js` | Integration & Concurrency (Jest) | `quikinvoice_test` | 12 | 12 | 0 | 14.28s | `npm test` |
-| **Total Automated Tests** | **Full Integration & Unit Suite** | **`quikinvoice_test`** | **81** | **81** | **0** | **53.83s** | **`npm test`** |
-| `client (Vite build)` | Production Bundle | N/A | 1999 modules | 1999 | 0 | 0.82s | `npm run build:client` |
+| **Total Automated Tests** | **Full Integration & Unit Suite** | **`quikinvoice_test`** | **86** | **86** | **0** | **51.46s** | **`npm test`** |
+| `client (Vite build)` | Production Bundle | N/A | 1997 modules | 1997 | 0 | 0.61s | `npm run build:client` |
 | `server/src/db/migrate.js` | DDL Migration (001–006) | `quikinvoice_dev` | 6 migrations | 6 | 0 | 0.49s | `npm run migrate` |
 | `server/src/db/migrate.js` | DDL Migration (001–006) | `quikinvoice_test` | 6 migrations | 6 | 0 | 0.47s | `node src/db/migrate.js quikinvoice_test` |
