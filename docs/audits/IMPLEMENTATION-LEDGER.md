@@ -3,7 +3,7 @@
 **Repository:** `QuikInvoice`  
 **Base Branch:** `main`  
 **Active Work Branch:** `feature/reconstruction`  
-**Last Updated:** October 15, 2026  
+**Last Updated:** October 16, 2026  
 
 ---
 
@@ -13,7 +13,8 @@
 | :---: | :--- | :---: | :--- | :---: | :---: |
 | **Phase 0** | Repository Inspection, Architecture Proposal & Plan | **COMPLETED** | [`00-project-assessment.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/00-project-assessment.md) | User | 2026-10-15 |
 | **Phase 1** | Project Foundation, Database Schema & Auth | **COMPLETED** | [`01-phase-1-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/01-phase-1-audit.md) | User | 2026-10-15 |
-| **Phase 2** | Core Invoicing, Clients, Taxes & PDF Engine | **PLANNED** | `02-phase-2-audit.md` | — | Pending Auth |
+| **Phase 1 Sec** | Security Remediation (Port 5001, CSRF Guard, Token Invalidation) | **COMPLETED** | [`01b-phase-1-security-remediation.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/01b-phase-1-security-remediation.md) | User | 2026-10-15 |
+| **Phase 2** | Core Invoicing, Clients, Taxes & PDF Engine | **COMPLETED** | [`02-phase-2-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/02-phase-2-audit.md) | User | Pending Auth |
 | **Phase 3** | Payments, Transactions, Security, Testing & UI | **PLANNED** | `03-phase-3-audit.md` | — | — |
 | **Phase 4** | Final Audit, Architecture Docs & Interview Guide | **PLANNED** | `04-final-audit.md` | — | — |
 
@@ -35,8 +36,14 @@
 | `CHG-010` | 2026-10-15 22:11 | Phase 1 | `server/tests/auth.test.js`, `tests/setup.js` | Automated Supertest integration test suite against `quikinvoice_test` | Proves correctness of auth, security, cookies, errors, and validation | 16/16 tests passing (7.36s) | [`01-phase-1-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/01-phase-1-audit.md#section-8) |
 | `CHG-011` | 2026-10-15 22:14 | Phase 1 | `client/src/context/AuthContext.jsx`, `LoginPage.jsx`, `RegisterPage.jsx`, `DashboardPage.jsx`, `App.jsx` | Implemented frontend auth flow, route guards, and landing dashboard | Complete end-to-end client session lifecycle | Vite production bundle verified | [`01-phase-1-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/01-phase-1-audit.md#section-3) |
 | `CHG-012` | 2026-10-15 22:18 | Phase 1 | `docs/ARCHITECTURE.md`, `docs/DATABASE-DESIGN.md`, `docs/ENGINEERING-DECISIONS.md`, `docs/audits/01-phase-1-audit.md` | Authored permanent architectural, schema, and ADR documentation | Fulfills Rule D documentation and interview defensibility criteria | Files verified and linked | [`01-phase-1-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/01-phase-1-audit.md) |
-| `CHG-013` | 2026-10-15 22:37 | Phase 1 Security | `docs/audits/01a-phase-1-security-review.md` | Conducted security audit of CORS, CSRF, and JWT logout, and diagnosed registration 403 error | Investigated root cause of 403 Forbidden (macOS AirPlay port 5000 collision) and evaluated CSRF and token revocation | Empirical curl probes and test runs verified | [`01a-phase-1-security-review.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/01a-phase-1-security-review.md) |
-| `CHG-014` | 2026-10-15 23:05 | Phase 1 Security | `server/src/middlewares/csrfMiddleware.js`, `server/src/db/migrations/002_add_user_token_version.sql`, `server/tests/security.test.js`, `client/vite.config.js` | Executed full security remediation: port 5001 reconfig, CSRF Origin & X-Requested-With guard, token_version server-side revocation, 11 new tests | Resolves macOS AirPlay collision, enforces CSRF defense, and guarantees universal token revocation on logout | 27/27 integration tests passing | [`01b-phase-1-security-remediation.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/01b-phase-1-security-remediation.md) |
+| `CHG-013` | 2026-10-15 22:37 | Phase 1 Sec | `docs/audits/01a-phase-1-security-review.md` | Conducted security audit of CORS, CSRF, and JWT logout, and diagnosed registration 403 error | Investigated root cause of 403 Forbidden (macOS AirPlay port 5000 collision) and evaluated CSRF and token revocation | Empirical curl probes and test runs verified | [`01a-phase-1-security-review.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/01a-phase-1-security-review.md) |
+| `CHG-014` | 2026-10-15 23:05 | Phase 1 Sec | `server/src/middlewares/csrfMiddleware.js`, `server/src/db/migrations/002_add_user_token_version.sql`, `server/tests/security.test.js`, `client/vite.config.js` | Executed full security remediation: port 5001 reconfig, CSRF Origin & X-Requested-With guard, token_version server-side revocation, 11 new tests | Resolves macOS AirPlay collision, enforces CSRF defense, and guarantees universal token revocation on logout | 27/27 integration tests passing | [`01b-phase-1-security-remediation.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/01b-phase-1-security-remediation.md) |
+| `CHG-015` | 2026-10-16 02:40 | Phase 2 | `server/src/db/migrations/003_create_clients.sql`, `004_create_invoices.sql`, `005_create_invoice_items.sql` | Executed normalized 3NF migrations for Clients, Invoices, and Line Items | Establishes multi-tenant schema with unique invoice numbering and decimal precision | Applied to `quikinvoice_dev` and `quikinvoice_test` | [`02-phase-2-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/02-phase-2-audit.md#section-4) |
+| `CHG-016` | 2026-10-16 02:45 | Phase 2 | `server/src/utils/money.js`, `server/src/services/clientService.js`, `invoiceService.js`, `pdfService.js` | Implemented integer-cent monetary arithmetic, client service, invoice state machine, and streaming PDFKit engine | Disregards spoofed client subtotals/taxes; ensures immutable invoice auditing; lightweight PDF generation | Tested via unit & integration tests | [`02-phase-2-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/02-phase-2-audit.md#section-5) |
+| `CHG-017` | 2026-10-16 02:50 | Phase 2 | `server/src/controllers/clientController.js`, `invoiceController.js`, `routes/`, `app.js` | Implemented and mounted REST controllers with Zod schema validation | Declarative validation contracts, standardized JSON responses, and centralized error handling | Supertest endpoints verified | [`02-phase-2-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/02-phase-2-audit.md#section-6) |
+| `CHG-018` | 2026-10-16 03:05 | Phase 2 | `server/tests/client.test.js`, `server/tests/invoice.test.js`, `tests/setup.js` | Implemented 27 automated integration tests for client CRUD, tenant isolation, invoice arithmetic, status machine, and binary PDF streaming | Proves multi-tenancy (User B cannot see or manipulate User A data), referential integrity guards, and PDF header integrity | **54/54 tests passing (4 suites)** | [`02-phase-2-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/02-phase-2-audit.md#section-8) |
+| `CHG-019` | 2026-10-16 03:20 | Phase 2 | `client/src/api/clientApi.js`, `invoiceApi.js`, `pages/ClientsPage.jsx`, `InvoicesListPage.jsx`, `InvoiceCreatePage.jsx`, `InvoiceDetailPage.jsx`, `App.jsx`, `Navbar.jsx` | Developed full Phase 2 frontend UI with real-time tax calculator, client directory, document-style invoice detail, and PDF download action | High-aesthetic, responsive React 19 UI with Tailwind CSS, live math preview, and empty states | `npm run build` passed in 423ms | [`02-phase-2-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/02-phase-2-audit.md#section-7) |
+| `CHG-020` | 2026-10-16 03:30 | Phase 2 | `docs/DATABASE-DESIGN.md`, `docs/API-DOCUMENTATION.md`, `docs/audits/02-phase-2-audit.md` | Authored comprehensive schema, API documentation, and formal Phase 2 audit report | Provides permanent, interview-ready documentation and architectural justifications | Verified files present and complete | [`02-phase-2-audit.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/audits/02-phase-2-audit.md) |
 
 ---
 
@@ -48,9 +55,12 @@
 | `MIG-001` | `001_create_users.sql` | `quikinvoice_test` | Creates `schema_migrations` & `users` table | 2026-10-15 22:07 | Yes | **APPLIED** |
 | `MIG-002` | `002_add_user_token_version.sql` | `quikinvoice_dev` | Adds `token_version` column to `users` | 2026-10-15 22:52 | Yes | **APPLIED** |
 | `MIG-002` | `002_add_user_token_version.sql` | `quikinvoice_test` | Adds `token_version` column to `users` | 2026-10-15 22:52 | Yes | **APPLIED** |
-| *MIG-003* | `003_create_clients.sql` | `quikinvoice_dev` | Creates `clients` table with FK to `users` | *Phase 2* | Yes | Planned |
-| *MIG-004* | `004_create_invoices.sql` | `quikinvoice_dev` | Creates `invoices` table with unique constraint & status enum | *Phase 2* | Yes | Planned |
-| *MIG-005* | `005_create_invoice_items.sql` | `quikinvoice_dev` | Creates `invoice_items` with line-level tax and pricing | *Phase 2* | Yes | Planned |
+| `MIG-003` | `003_create_clients.sql` | `quikinvoice_dev` | Creates `clients` table with FK to `users` | 2026-10-16 02:40 | Yes | **APPLIED** |
+| `MIG-003` | `003_create_clients.sql` | `quikinvoice_test` | Creates `clients` table with FK to `users` | 2026-10-16 02:41 | Yes | **APPLIED** |
+| `MIG-004` | `004_create_invoices.sql` | `quikinvoice_dev` | Creates `invoices` table with unique constraint & status enum | 2026-10-16 02:40 | Yes | **APPLIED** |
+| `MIG-004` | `004_create_invoices.sql` | `quikinvoice_test` | Creates `invoices` table with unique constraint & status enum | 2026-10-16 02:41 | Yes | **APPLIED** |
+| `MIG-005` | `005_create_invoice_items.sql` | `quikinvoice_dev` | Creates `invoice_items` with line-level tax and pricing | 2026-10-16 02:40 | Yes | **APPLIED** |
+| `MIG-005` | `005_create_invoice_items.sql` | `quikinvoice_test` | Creates `invoice_items` with line-level tax and pricing | 2026-10-16 02:41 | Yes | **APPLIED** |
 | *MIG-006* | `006_create_invoice_payments.sql` | `quikinvoice_dev` | Creates `invoice_payments` ledger table | *Phase 3* | Yes | Planned |
 
 ---
@@ -67,6 +77,9 @@
 | `ADR-006` | Server-Side JWT Invalidation via `token_version` | **ACCEPTED** | Unsigned integer on users table incremented on logout; instant revocation without Redis or blacklist tables. | [`ENGINEERING-DECISIONS.md#adr-006`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/ENGINEERING-DECISIONS.md#adr-006-server-side-jwt-invalidation-via-token_version-column) |
 | `ADR-007` | Defense-in-Depth CSRF via Origin & Custom Headers | **ACCEPTED** | Validates Origin/Referer and enforces `X-Requested-With: XMLHttpRequest` on cookie-authenticated mutations. | [`ENGINEERING-DECISIONS.md#adr-007`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/ENGINEERING-DECISIONS.md#adr-007-defense-in-depth-csrf-mitigation-via-origin-allowlist--custom-headers) |
 | `ADR-008` | Port 5001 Selection to Prevent AirPlay Collision | **ACCEPTED** | Avoids port 5000 collision with native macOS AirTunes daemon in ControlCenter. | [`ENGINEERING-DECISIONS.md#adr-008`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/ENGINEERING-DECISIONS.md#adr-008-port-5001-selection-to-prevent-macos-airplay-daemon-collision) |
+| `ADR-009` | Authoritative Server-Side Monetary Arithmetic | **ACCEPTED** | Compute all financial line items, taxes, subtotals, and totals on server using integer cents and `DECIMAL(12, 2)` to eliminate floating-point drift. | [`ENGINEERING-DECISIONS.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/ENGINEERING-DECISIONS.md) |
+| `ADR-010` | Streaming Vector PDF Generation via PDFKit | **ACCEPTED** | Stream dynamically generated PDFs directly into Express HTTP response with zero intermediate filesystem disk I/O. | [`ENGINEERING-DECISIONS.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/ENGINEERING-DECISIONS.md) |
+| `ADR-011` | Immutable Invoicing State Machine | **ACCEPTED** | Invoices transition through a strict state machine (`DRAFT -> ISSUED -> [PARTIALLY_PAID -> PAID | OVERDUE | VOID]`). Once `ISSUED`, line items and billing amounts are immutable. | [`ENGINEERING-DECISIONS.md`](file:///Users/balajiaadesh/Desktop/projects/QuikInvoice/docs/ENGINEERING-DECISIONS.md) |
 
 ---
 
@@ -74,7 +87,7 @@
 
 | Threat ID | Threat Category | Target Component | Mitigating Control | Implementation Status |
 | :---: | :--- | :--- | :--- | :---: |
-| `SEC-001` | Broken Object Level Authorization (BOLA / IDOR) | `/api/invoices/:id`, `/api/clients/:id` | Enforce `WHERE id = ? AND user_id = ?` on every data access query | Staged for Phase 2 |
+| `SEC-001` | Broken Object Level Authorization (BOLA / IDOR) | `/api/invoices/:id`, `/api/clients/:id` | Enforce `WHERE id = ? AND user_id = ?` on every data access query | **Implemented & Verified** |
 | `SEC-002` | SQL Injection | Database Queries | 100% Parameterized queries with `mysql2/promise` placeholders (`?`) | **Implemented & Verified** |
 | `SEC-003` | Brute Force Authentication | `/api/auth/login`, `/api/auth/register` | Rate limit to 10 requests per 15 minutes per IP via `express-rate-limit` | **Implemented & Verified** |
 | `SEC-004` | XSS Token Exfiltration | Client Session | Store JWT in an `httpOnly`, `SameSite=Lax` cookie inaccessible to browser JS | **Implemented & Verified** |
@@ -82,6 +95,8 @@
 | `SEC-006` | Payment Race Condition / Overpayment | `/api/invoices/:id/payments` | InnoDB ACID transaction with `SELECT ... FOR UPDATE` row-level lock | Staged for Phase 3 |
 | `SEC-007` | Cross-Site Request Forgery (CSRF) | State-changing routes | `csrfProtection` validates Origin/Referer and requires `X-Requested-With` | **Implemented & Verified** |
 | `SEC-008` | Stateless Token Replay Post-Logout | Session Management | `token_version` incremented on logout; rejected in `authMiddleware` | **Implemented & Verified** |
+| `SEC-009` | Client Deletion Accounting Breach | `/api/clients/:id` | Reject client deletion with `409 Conflict` if invoices exist (`ON DELETE RESTRICT`) | **Implemented & Verified** |
+| `SEC-010` | Invoice Financial Spoofing | `/api/invoices` | Server ignores client subtotals/tax amounts; computes authoritatively via `money.js` | **Implemented & Verified** |
 
 ---
 
@@ -89,9 +104,11 @@
 
 | Test Suite | Environment | Target Database | Tests Run | Tests Passed | Tests Failed | Execution Time | Command |
 | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :--- |
-| `server/tests/auth.test.js` | Integration (Jest/Supertest) | `quikinvoice_test` | 16 | 16 | 0 | 6.73s | `npm test` |
-| `server/tests/security.test.js` | Integration (Jest/Supertest) | `quikinvoice_test` | 11 | 11 | 0 | 3.62s | `npm test` |
-| **Total Automated Tests** | **Full Integration Suite** | **`quikinvoice_test`** | **27** | **27** | **0** | **10.36s** | **`npm test`** |
-| `client (Vite build)` | Production Bundle | N/A | 1990 modules | 1990 | 0 | 0.42s | `npm run build:client` |
-| `server/src/db/migrate.js` | DDL Migration (001 + 002) | `quikinvoice_dev` | 2 migrations | 2 | 0 | 0.45s | `npm run migrate` |
-| `server/src/db/migrate.js` | DDL Migration (001 + 002) | `quikinvoice_test` | 2 migrations | 2 | 0 | 0.42s | `node src/db/migrate.js quikinvoice_test` |
+| `server/tests/auth.test.js` | Integration (Jest/Supertest) | `quikinvoice_test` | 16 | 16 | 0 | 6.53s | `npm test` |
+| `server/tests/security.test.js` | Integration (Jest/Supertest) | `quikinvoice_test` | 11 | 11 | 0 | 3.58s | `npm test` |
+| `server/tests/client.test.js` | Integration (Jest/Supertest) | `quikinvoice_test` | 12 | 12 | 0 | 12.49s | `npm test` |
+| `server/tests/invoice.test.js` | Integration (Jest/Supertest) | `quikinvoice_test` | 15 | 15 | 0 | 16.13s | `npm test` |
+| **Total Automated Tests** | **Full Integration Suite** | **`quikinvoice_test`** | **54** | **54** | **0** | **38.73s** | **`npm test`** |
+| `client (Vite build)` | Production Bundle | N/A | 1996 modules | 1996 | 0 | 0.42s | `npm run build:client` |
+| `server/src/db/migrate.js` | DDL Migration (001–005) | `quikinvoice_dev` | 5 migrations | 5 | 0 | 0.48s | `npm run migrate` |
+| `server/src/db/migrate.js` | DDL Migration (001–005) | `quikinvoice_test` | 5 migrations | 5 | 0 | 0.45s | `node src/db/migrate.js quikinvoice_test` |

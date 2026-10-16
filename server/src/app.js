@@ -5,6 +5,8 @@ import cookieParser from 'cookie-parser';
 import env from './config/env.js';
 import { checkDbConnection } from './config/db.js';
 import authRoutes from './routes/authRoutes.js';
+import clientRoutes from './routes/clientRoutes.js';
+import invoiceRoutes from './routes/invoiceRoutes.js';
 import { csrfProtection } from './middlewares/csrfMiddleware.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { NotFoundError } from './utils/errors.js';
@@ -51,6 +53,8 @@ app.get('/api/health', async (req, res) => {
 
 // 5. Mount Application Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/clients', clientRoutes);
+app.use('/api/invoices', invoiceRoutes);
 
 // 6. Catch-all 404 for undefined routes
 app.use('*', (req, res, next) => {
